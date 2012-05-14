@@ -163,7 +163,6 @@ package weave.services
 			{
 				var loaderInfo:LoaderInfo = completeEvent.target as LoaderInfo;
 				var result:Object = loaderInfo.content;
-				
 				// save the image, run handler, and remove the loader from the dictionary
 				_contentCache[url] = result;
 				delete _requestURLToLoader[url];
@@ -182,6 +181,8 @@ package weave.services
 				var faultEvent:FaultEvent = FaultEvent.createEvent(new Fault(errorEvent.type, errorEvent.text));
 				customURLLoader.asyncToken.mx_internal::applyFault(faultEvent);
 			};
+			
+			trace("URL: " + url);
 		
 		
 			//TODO:  loader spits out lots of errors when it can't parse the data as an image.

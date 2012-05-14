@@ -156,6 +156,8 @@ package weave.services.wms
 			for (i = 0; i < _pendingTiles.length; ++i)
 			{
 				var pendingTile:WMSTile = _pendingTiles[i] as WMSTile;
+				
+			
 				if (pendingTile.zoomLevel != _tempCoord.zoom)
 				{
 					pendingTile.cancelDownload(); // cancel download
@@ -282,6 +284,7 @@ package weave.services.wms
 			var tempPrecision:Number;
 			var maxZoom:int = 1;
 			_tempCoord.zoom = 1;
+						
 			
 			// not all providers allow the same zoom range
 			if (_mapProvider is BlueMarbleMapProvider)
@@ -306,7 +309,7 @@ package weave.services.wms
 				maxZoom = 7;
 			
 			if (_mapProvider is MichiganStreetsProvider){
-				//Do what makes the error stop
+				//trace(worldArea);
 			}
 			// very few providers have a zoom of 0, so the loop starts at 1 to prevent enforcement later
 			for (var i:int = 1; i <= maxZoom; ++i) // 20 is max provided in ModestMaps Library
@@ -314,6 +317,8 @@ package weave.services.wms
 				numTiles = Math.pow(2, 2 * i); // 2^(2n) tiles at zoom level n
 				tileArea = worldArea / numTiles;
 				tempPrecision = tileArea / imageArea;
+			
+				
 				if (tempPrecision < requestedPrecision)
 				{
 					higherQualZoomLevel = i;
