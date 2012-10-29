@@ -237,7 +237,7 @@ package weave.services.wms
 				}
 			}
 
-			lowerQualTiles = lowerQualTiles.concat(completedTiles);
+			lowerQualTiles = completedTiles;
 			AsyncSort.sortImmediately(lowerQualTiles, tileSortingComparison);
 			return lowerQualTiles;
 		}
