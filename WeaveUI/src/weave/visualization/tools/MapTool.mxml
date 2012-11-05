@@ -621,7 +621,8 @@
 				   width="17" height="17" 
 				   toggle="true"
 				   toolTip="Select this mode to enable panning on the map using the mouse."
-				   click="handleMouseModeChange(event)" cornerRadius="0"/>
+				   click="handleMouseModeChange(event)" cornerRadius="0"
+				   selected = "true"/>
 			<mx:Button id="selectModeSubtractButton"
 				   icon="@Embed(source='/weave/resources/images/selectMode_subtract.png')"
 				   fillAlphas="[1,1]"  fillColors="{selectModeSubtractButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
@@ -639,8 +640,7 @@
 				   width="17" height="17"
 				   toggle="true"
 				   toolTip="Select this mode to enable adding selections to existing selections of shapes on the map using the mouse."
-				   click="handleMouseModeChange(event)" cornerRadius="0"
-				   selected="true"/>
+				   click="handleMouseModeChange(event)" cornerRadius="0"/>
 			<mx:Button id="selectModeAddButton"
 				   icon="@Embed(source='/weave/resources/images/selectMode_add.png')"
 				   fillAlphas="[1,1]"  fillColors="{selectModeAddButton.selected ? [0xFF8080, 0xFF8080] : [0x808080, 0x808080]}"
