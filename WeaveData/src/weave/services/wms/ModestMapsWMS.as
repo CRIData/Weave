@@ -478,7 +478,7 @@ package weave.services.wms
 			else if (_mapProvider is OpenMapQuestAerialProvider)
 				return 'Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency';
 			else if (_mapProvider is MichiganStreetsProvider)
-				return 'Michigan Highways';
+				return 'Michigan Highways: Design by CRI, Data by OpenStreetMap: http://www.openstreetmap.org, MI Hwy shapes provided by CloudMade';
 			else if (_mapProvider is StamenProvider)
 				return 'Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under CC BY SA.';			
 			return '';

@@ -536,7 +536,7 @@
 			 visible="{zoomControlsToggle.selected}"
 			 verticalGap="2">
 
-			<mx:VBox id="panControls" horizontalAlign="center" verticalGap="1" height="100%">
+			<!-- <mx:VBox id="panControls" horizontalAlign="center" verticalGap="1" height="100%">
 				<mx:Button id="north"
 					   label="N"
 					   fillAlphas="[1.0, 1.0, 1.0, 1.0]"
@@ -545,7 +545,7 @@
 					   labelPlacement="left" fontSize="10" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" cornerRadius="0" textAlign="center"
 					   />
 
-				<mx:HBox horizontalGap="2">			
+				<mx:HBox horizontalGap="2">
 					<mx:Button id="west"
 						   label="W" toolTip=""
 						   fillAlphas="[1.0, 1.0, 1.0, 1.0]"
@@ -555,8 +555,8 @@
 					<mx:Button id="zoomToExtentButton"
 						   toolTip="Click this button to zoom to map's full extent"
 						   icon="@Embed(source='/weave/resources/images/zoomToExtent.png')"
-						   fillAlphas="[1,1]" 
-						   width="16" height="16" 
+						   fillAlphas="[1,1]"
+						   width="16" height="16"
 						   cornerRadius="0"
 						   click="visualization.zoomToSelection()"/>
 					<mx:Button id="east"
@@ -573,8 +573,8 @@
 					   width="16" height="16"
 					   click="handlePanButtonClick(0,-1)"
 					   labelPlacement="left" fontSize="10" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" cornerRadius="0" textAlign="center"/>
-			</mx:VBox>
-		</mx:VBox>
+			</mx:VBox> -->
+		</mx:VBox> 
 
 		<mx:VBox paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
 			 verticalGap="2"
