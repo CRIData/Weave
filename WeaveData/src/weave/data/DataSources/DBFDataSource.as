@@ -55,8 +55,7 @@ package weave.data.DataSources
 	import weave.utils.ShpFileReader;
 
 	/**
-	 * DBFDataSource
-	 * 
+	 * @author adufilie
 	 */
 	public class DBFDataSource extends AbstractDataSource
 	{
@@ -75,6 +74,7 @@ package weave.data.DataSources
 		public const keyColName:LinkableString = newLinkableChild(this, LinkableString);
 		public const dbfUrl:LinkableString = newLinkableChild(this, LinkableString, handleDbfUrlChange, true);
 		public const shpUrl:LinkableString = newLinkableChild(this, LinkableString, handleShpUrlChange, true);
+//		public const projection:LinkableString = newLinkableChild(this, LinkableString, handleProjectionChange, true);
 		
 		private function handleDbfUrlChange():void
 		{
@@ -106,7 +106,6 @@ package weave.data.DataSources
 		private static const THE_GEOM_COLUMN:String = 'the_geom';
 		
 		/**
-		 * handleDBFDownload
 		 * Called when the DBF file is downloaded from the URL
 		 */
 		private function handleDBFDownload(event:ResultEvent, token:Object = null):void
@@ -145,7 +144,6 @@ package weave.data.DataSources
 		}
 		
 		/**
-		 * handleShpDownload
 		 * Called when the Shp file is downloaded from the URL
 		 */
 		private function handleShpDownload(event:ResultEvent, token:Object = null):void
@@ -156,6 +154,8 @@ package weave.data.DataSources
 			// ignore outdated results
 			if (token != shpUrl.value)
 				return;
+			
+			debug('shp download complete',shpUrl.value);
 			
 			debug('shp download complete',shpUrl.value);
 			
@@ -171,7 +171,6 @@ package weave.data.DataSources
 		}
 
 		/**
-		 * handleDBFDownloadError
 		 * Called when the DBF file fails to download from the URL
 		 */
 		private function handleDBFDownloadError(event:FaultEvent, token:Object = null):void
@@ -187,7 +186,6 @@ package weave.data.DataSources
 		}
 
 		/**
-		 * requestColumnFromSource
 		 * This function must be implemented by classes by extend AbstractDataSource.
 		 * This function should make a request to the source to fill in the proxy column.
 		 * @param columnReference An object that contains all the information required to request the column from this IDataSource. 

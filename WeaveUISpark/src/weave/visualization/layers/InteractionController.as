@@ -1,20 +1,20 @@
 /*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-	This file is a part of Weave.
+    This file is a part of Weave.
 
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
 
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.visualization.layers
@@ -24,11 +24,12 @@ package weave.visualization.layers
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerDisposableChild;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableString;
 
 	/**
 	 * This class handles mouse/keyboard interactions performed within InteractiveVisualizations
-	 *
+	 * 
 	 * @author kmanohar
 	 * @author adufilie
 	 */
@@ -42,9 +43,9 @@ package weave.visualization.layers
 		public static const INPUT_WHEEL:String = "wheel";
 		public static const INPUT_PAN:String = "pan"; // gesture
 		public static const INPUT_ZOOM:String = "zoom"; // gesture
-
+		
 		private static const ALL_INPUT_TYPES:Array = [INPUT_MOVE, INPUT_DRAG, INPUT_CLICK, INPUT_DCLICK, INPUT_WHEEL, INPUT_PAN, INPUT_ZOOM];
-
+		
 		// modifier keys
 		public static const CTRL:String = "ctrl";
 		public static const ALT:String = "alt";
@@ -61,7 +62,7 @@ package weave.visualization.layers
 		public static const ZOOM_IN:String = "zoomIn";
 		public static const ZOOM_OUT:String = "zoomOut";
 		public static const ZOOM_TO_EXTENT:String = "zoomToExtent";
-
+		
 		public static const SELECTION_MODE_RECTANGLE:String = "rectangle";
 		public static const SELECTION_MODE_CIRCLE:String = "circle";
 		public static const SELECTION_MODE_LASSO:String = "lasso";
@@ -69,43 +70,42 @@ package weave.visualization.layers
 		{
 			return [SELECTION_MODE_RECTANGLE, SELECTION_MODE_CIRCLE, SELECTION_MODE_LASSO];
 		}
-
+		
 		/**
 		 * This is a list of what are considered "modes" that affect what moving the mouse does.
 		 * This does not include one-time actions not affected by mouse movements.
 		 */		
 		private static const INTERACTION_MODES:Array = [PAN, SELECT, SELECT_ADD, SELECT_REMOVE, ZOOM, PROBE];
-
+	
 		public function InteractionController()			
 		{
 			super();
-
+			
 			// default session state
 			probe.value = INPUT_MOVE;
 			select.value = [INPUT_DRAG].join(DELIM);
 			selectAdd.value = [CTRL, INPUT_DRAG].join(DELIM);
 			selectRemove.value = [CTRL, SHIFT, INPUT_DRAG].join(DELIM);
 			selectAll.value = [CTRL, INPUT_DCLICK].join(DELIM);
-
+			
 			pan.value = WeaveAPI.CSVParser.createCSV([[ALT, INPUT_DRAG], [INPUT_PAN]]);
 			zoom.value = WeaveAPI.CSVParser.createCSV([[SHIFT, INPUT_DRAG], [INPUT_WHEEL], [INPUT_ZOOM]]);
 			zoomIn.value = INPUT_DCLICK;
 			zoomOut.value = [SHIFT, INPUT_DCLICK].join(DELIM);
 			zoomToExtent.value = [CTRL, ALT, SHIFT, INPUT_DCLICK].join(DELIM);
-
+			
 			getCallbackCollection(this).addImmediateCallback(this, invalidate);
 		}
-
+		
 		/**
 		 * This is the default mode to use when dragging and no modifier keys are pressed.
-		 * Not included in session state.
 		 */
-		public const defaultDragMode:LinkableString = registerDisposableChild(this, new LinkableString(PAN, verifyDefaultMode));
+		public const defaultDragMode:LinkableString = registerLinkableChild(this, new LinkableString(null, verifyDefaultMode), validate);
 		private function verifyDefaultMode(value:String):Boolean
 		{
 			return !value || [PROBE, SELECT, PAN, ZOOM].indexOf(value) >= 0;
 		}
-
+		
 		public const probe:LinkableString = newLinkableChild(this, LinkableString);
 		public const select:LinkableString = newLinkableChild(this, LinkableString);
 		public const selectRemove:LinkableString = newLinkableChild(this, LinkableString);
@@ -116,12 +116,12 @@ package weave.visualization.layers
 		public const zoomIn:LinkableString = newLinkableChild(this, LinkableString);
 		public const zoomOut:LinkableString = newLinkableChild(this, LinkableString);
 		public const zoomToExtent:LinkableString = newLinkableChild(this, LinkableString);
-
+		
 		//private const whitespace:RegExp = new RegExp("\s") ;
 		private const DELIM:String = ',';
 		private var _interactionLookup:Object;
 		private var _interactionModeLookup:Object;
-
+		
 		private function invalidate():void
 		{
 			_interactionLookup = null;
@@ -143,7 +143,7 @@ package weave.visualization.layers
 				[ZOOM_IN, zoomIn],
 				[ZOOM_OUT, zoomOut],
 				[ZOOM_TO_EXTENT, zoomToExtent]
-				];
+			];
 			for (var i:int = 0; i < pairs.length; i++)
 			{
 				var mouseMode:String = pairs[i][0];
@@ -157,7 +157,7 @@ package weave.visualization.layers
 					var actionStr:String = row.join(DELIM);
 					if (!_interactionLookup.hasOwnProperty(actionStr))
 						_interactionLookup[actionStr] = mouseMode;
-
+					
 					// remove event tokens, then save lookup from (modifier keys) to mouseMode
 					for each (var inputType:String in ALL_INPUT_TYPES)
 					{
@@ -173,9 +173,9 @@ package weave.visualization.layers
 				}
 			}
 		}
-
+		
 		/**
-		 * @return An Array containing String items corresponding to the active modifier keys (alt,ctrl,shift)
+		 * @return An Array containing String items corresponding to the active modifier keys (alt,ctrl,shift) 
 		 */
 		private function getModifierSequence():Array
 		{
@@ -188,7 +188,7 @@ package weave.visualization.layers
 				array.push(SHIFT);
 			return array;
 		}
-
+		
 		/**
 		 * Determine current mouse action from modifier keys and input type.
 		 * @param mouseEventType A mouse event type such as move, drag, click, or dclick.
@@ -198,20 +198,20 @@ package weave.visualization.layers
 		{
 			if (!_interactionLookup)
 				validate();
-
+			
 			var array:Array = getModifierSequence();
-
+			
 			// if no modifier keys are pressed, default mode is specified, and this is a drag input or no input... use default drag mode
 			if (array.length == 0 && defaultDragMode.value && (!inputType || inputType == INPUT_DRAG))
 				return defaultDragMode.value;
-
+			
 			var str:String;
 			if (inputType)
 			{
 				array.push(inputType);
 				str = array.sort().join(DELIM);
 				var action:String = _interactionLookup[str];
-
+				
 				//trace(defaultDragMode.value,'determineMouseAction',mouseEventType,'['+str+'] =>',action);
 				return action;
 			}
@@ -219,14 +219,12 @@ package weave.visualization.layers
 			{
 				str = array.sort().join(DELIM);
 				var mode:String = _interactionModeLookup[str];
-
+				
 				//trace(defaultDragMode.value,'determineMouseMode','['+str+'] =>',mode);
 				return mode;
 			}
-
+			
 			return action;
 		}
 	}
 }
-
-

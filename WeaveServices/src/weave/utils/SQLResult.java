@@ -31,6 +31,8 @@ import java.util.LinkedList;
  */
 public class SQLResult
 {
+	public static final int FETCH_SIZE = 1000;
+	
 	public SQLResult(ResultSet rs) throws SQLException
 	{
 		read(rs, false);
@@ -38,6 +40,7 @@ public class SQLResult
 	
 	public SQLResult(ResultSet rs, boolean convertToStrings) throws SQLException
 	{
+		rs.setFetchSize(FETCH_SIZE);
 		read(rs, convertToStrings);
 	}
 	
@@ -60,7 +63,7 @@ public class SQLResult
 			Object[] row = new Object[n];
 			for (int i = 0; i < n; i++)
 			{
-				if (convertToStrings)
+				if (convertToStrings || !SQLUtils.sqlTypeIsNumeric(columnTypes[i]))
 					row[i] = rs.getString(i + 1);
 				else
 					row[i] = rs.getObject(i + 1);
@@ -91,8 +94,8 @@ public class SQLResult
 	 */
 	public String toString()
 	{
-		String header = CSVParser.defaultParser.createCSV(new String[][]{ columnNames }, true);
-		String data = CSVParser.defaultParser.createCSV(rows, true);
+		String header = CSVParser.defaultParser.createCSVRow(columnNames, true);
+		String data = CSVParser.defaultParser.createCSV(rows, true, false);
 		return header + CSVParser.LF + data;
 	}
 }

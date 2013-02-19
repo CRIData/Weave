@@ -47,8 +47,6 @@ package weave.visualization.plotters
 	 */
 	public class AbstractPlotter implements IPlotter, IDisposableObject
 	{
-		private function debugTrace(..._):void { } // comment this line to enable debugging
-		
 		/**
 		 * @param columnToGetKeysFrom The column that the IKeySet object uses to get keys from.
 		 */
@@ -56,9 +54,9 @@ package weave.visualization.plotters
 		{
 			spatialCallbacks.addImmediateCallback(this, returnPooledObjects);
 
-			var self:Object = this;
-			spatialCallbacks.addImmediateCallback(this, function():void{ debugTrace(self, 'spatialCallbacks', spatialCallbacks); });
-			getCallbackCollection(keySet).addImmediateCallback(this, function():void{ debugTrace(self,'keys',keySet.keys.length); });
+//			var self:Object = this;
+//			spatialCallbacks.addImmediateCallback(this, function():void{ debugTrace(self, 'spatialCallbacks', spatialCallbacks); });
+//			getCallbackCollection(filteredKeySet).addImmediateCallback(this, function():void{ debugTrace(self,'keys',filteredKeySet.keys.length); });
 		}
 		
 		/**
@@ -91,6 +89,9 @@ package weave.visualization.plotters
 		 */
 		protected function getReusableBounds(xMin:Number = NaN, yMin:Number = NaN, xMax:Number = NaN, yMax:Number = NaN):Bounds2D
 		{
+			// TEMPORARY SOLUTION because SpatialIndex seems to be misbehaving now that everything's asynchronous
+			return new Bounds2D(xMin,yMin,xMax,yMax);
+			
 			var bounds:Bounds2D = ObjectPool.borrowObject(Bounds2D);
 			bounds.setBounds(xMin, yMin, xMax, yMax);
 			pooledObjects.push(bounds);
@@ -184,7 +185,7 @@ package weave.visualization.plotters
 		/**
 		 * @return An IKeySet interface to the record keys that can be passed to the drawRecord() and getDataBoundsFromRecordKey() functions.
 		 */
-		public function get keySet():IFilteredKeySet
+		public function get filteredKeySet():IFilteredKeySet
 		{
 			return _filteredKeySet;
 		}

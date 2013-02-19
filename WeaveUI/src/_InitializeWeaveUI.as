@@ -75,6 +75,7 @@ package
 	import weave.visualization.tools.ScatterPlotTool;
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
+	import weave.visualization.tools.TransposedTableTool;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -110,34 +111,6 @@ package
 		EditorManager.registerEditor(DataStatisticsTool, DataStatisticsToolEditor);
 		
 		EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
-		
-		// reference these tools so they will run their static initialization code
-		([
-			AttributeMenuTool,
-			CompoundBarChartTool,
-			ColorBinLegendTool,
-			ColormapHistogramTool,
-			CompoundRadVizTool,
-			CustomTool,
-			SchafersMissingDataTool,
-			DataTableTool,
-			GaugeTool,
-			HistogramTool,
-			Histogram2DTool,
-			GraphTool,
-			LineChartTool,
-			DimensionSliderTool,
-			MapTool,
-			PieChartTool,
-			PieChartHistogramTool,
-			RadVizTool,
-			RTextEditor,
-			ScatterPlotTool,
-			ThermometerTool,
-			TimeSliderTool,
-			RamachandranPlotTool,
-			DataStatisticsTool
-		]).toString();
 		
 		/**
 		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.

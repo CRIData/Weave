@@ -96,7 +96,8 @@
 					 paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5"
 					 borderStyle="solid" borderThickness="1"
 					 verticalAlign="middle"
-					 verticalGap="0">
+					 verticalGap="0"
+					 >
 				<mx:HBox width="100%" horizontalGap="1" verticalAlign="middle" paddingBottom="0" paddingTop="0">
 					<mx:CheckBox id="visibleCheckbox" 
 								 label="{lang('visible')}" 
@@ -171,7 +172,9 @@
 												 prompt="{lang('Select a service')}"
 												 dataProvider="{WMSProviders.providers}"
 												 width="200"
-												 toolTip="{lang('Select the WMS provider to use.')}" />
+												 toolTip="{lang('Select the WMS provider to use.')}" 
+												 creationComplete="{if(plotter is WMSPlotter){event.target.selectedItem  = (plotter as WMSPlotter).providerName;}}"
+												 change="handleWMSLayersServiceChange()"/>
 							</mx:HBox>
 						</mx:VBox>
 						<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="center" verticalAlign="middle">
@@ -468,7 +471,7 @@
 								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 								
 								geomPlotter.pointDataImageColumn.addImmediateCallback(null, handleGeomPlotterImageURLChange);
-								getCallbackCollection(geomPlotter.keySet).addImmediateCallback(null, handleSubsetChange, true);
+								getCallbackCollection(geomPlotter.filteredKeySet).addImmediateCallback(null, handleSubsetChange, true);
 								linkBindableProperty(geomPlotter.iconSize, iconSize, "value");
 								linkBindableProperty(geomPlotter.useFixedImageSize, fixedImageSizeCheck, "selected");
 								
@@ -488,7 +491,6 @@
 								
 								linkBindableProperty(wmsPlotter.displayMissingImage, wmsDisplayMissing, "selected");
 								linkBindableProperty(wmsPlotter.preferLowerQuality, wmsPreferLowerQuality, "selected");
-								linkBindableProperty(wmsPlotter.serviceName,wmsLayerService,"selectedItem");
 							}
 							else if (plotter is SingleImagePlotter)
 							{
@@ -498,6 +500,11 @@
 							{
 								settingsButton.visible = true;
 							}
+						}
+						
+						private function handleWMSLayersServiceChange():void
+						{
+							(plotter as WMSPlotter).setProvider(wmsLayerService.selectedItem as String);
 						}
 						
 						private function unlinkGeometryProperties():void
@@ -518,7 +525,7 @@
 								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 								
 								geomPlotter.pointDataImageColumn.removeCallback(handleGeomPlotterImageURLChange);
-								getCallbackCollection(geomPlotter.keySet).removeCallback(handleSubsetChange);
+								getCallbackCollection(geomPlotter.filteredKeySet).removeCallback(handleSubsetChange);
 								unlinkBindableProperty(geomPlotter.iconSize, iconSize, "value");
 								unlinkBindableProperty(geomPlotter.useFixedImageSize, fixedImageSizeCheck, "selected");
 									
@@ -538,7 +545,6 @@
 								
 								unlinkBindableProperty(wmsPlotter.displayMissingImage, wmsDisplayMissing, "selected");
 								unlinkBindableProperty(wmsPlotter.preferLowerQuality, wmsPreferLowerQuality, "selected");
-								unlinkBindableProperty(wmsPlotter.serviceName,wmsLayerService,"selectedItem");
 							}
 						}
 						
@@ -552,7 +558,10 @@
 							if (plotter is GeometryPlotter)
 								_label = ColumnUtils.getTitle((plotter as GeometryPlotter).geometryColumn);
 							else if (plotter is WMSPlotter)
-								_label = (plotter as WMSPlotter).serviceName.value;
+							{
+								_label = (plotter as WMSPlotter).providerName;
+								wmsLayerService.selectedItem  = (plotter as WMSPlotter).providerName;
+							}
 							else
 								_label = plotterName;
 							
@@ -574,7 +583,7 @@
 							}
 							else if (plotter is WMSPlotter)
 							{
-								projLabel = ' (' + WMSProviders.getSRS((plotter as WMSPlotter).serviceName.value) + ')'; 
+								projLabel = ' (' + WMSProviders.getSRS((plotter as WMSPlotter).providerName) + ')'; 
 							}
 							_label += projLabel;
 						}
@@ -690,16 +699,16 @@
 						{
 							if (ignoreSubsetCheck.selected)
 							{
-								plotter.keySet.keyFilter.removeObject();
+								plotter.filteredKeySet.keyFilter.removeObject();
 							}
 							else
 							{
-								plotter.keySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+								plotter.filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 							}
 						}
 						private function handleSubsetChange():void
 						{
-							ignoreSubsetCheck.selected = plotter.keySet.keyFilter.globalName ? false : true;
+							ignoreSubsetCheck.selected = plotter.filteredKeySet.keyFilter.globalName ? false : true;
 						}
 					]]>
 				</mx:Script>

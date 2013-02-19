@@ -19,29 +19,26 @@
 
 
 	<!-- This property's value is defined as an environment variable -->
-	<property name="FLEX_HOME" value="${env.FLEX_HOME}" />
-	<property name="FLEX_LIBS" value="${FLEX_HOME}/frameworks/libs" />
-	<property name="FRAMEWORK_SWF" value="framework_4.5.1.21489.swf" />
-	<property name="RPC_SWF" value="rpc_4.5.1.21328.swf" />
-	<property name="SPARK_SWF" value="spark_4.5.1.21489.swf" />
-	<property name="MX_SWF" value="mx_4.5.1.21489.swf" />
-	<property name="TEXTLAYOUT_SWF" value="textLayout_2.0.0.232.swf" />
-	<taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
-	<property name="MX_SWF" value="mx_4.5.1.21489.swf" />
-	<property name="TEXTLAYOUT_SWF" value="textLayout_2.0.0.232.swf" />
-	<taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
+	<property name="FLEX_HOME" value="${env.FLEX_HOME}"/>
+	<property name="FLEX_LIBS" value="${FLEX_HOME}/frameworks/libs"/>
+	<property name="FRAMEWORK_SWF" value="framework_4.5.1.21489.swf"/>
+	<property name="RPC_SWF" value="rpc_4.5.1.21328.swf"/>
+	<property name="SPARK_SWF" value="spark_4.5.1.21489.swf"/>
+        <property name="MX_SWF" value="mx_4.5.1.21489.swf"/>
+        <property name="TEXTLAYOUT_SWF" value="textLayout_2.0.0.232.swf"/>
+    <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
 
 	<!-- These are the projects -->
-	<property name="API" value="WeaveAPI" />
-	<property name="CORE" value="WeaveCore" />
-	<property name="DATA" value="WeaveData" />
-	<property name="UISPARK" value="WeaveUISpark" />
-	<property name="UI" value="WeaveUI" />
-	<property name="FONTS" value="WeaveFonts" />
-	<property name="CLIENT" value="WeaveClient" />
-	<property name="ADMIN" value="WeaveAdmin" />
-	<property name="SERVICES" value="WeaveServices" />
+	<property name="API" value="WeaveAPI"/>
+	<property name="CORE" value="WeaveCore"/>
+	<property name="DATA" value="WeaveData"/>
+	<property name="UISPARK" value="WeaveUISpark"/>
+	<property name="UI" value="WeaveUI"/>
+        <property name="FONTS" value="WeaveFonts"/>
+	<property name="CLIENT" value="WeaveClient"/>
+	<property name="ADMIN" value="WeaveAdmin"/>
+	<property name="SERVICES" value="WeaveServices"/>
 
 	<target name="dist" depends="build">
 		<zip destfile="weave.zip">
@@ -67,6 +64,11 @@
 				<include name="*.css" />
 			</fileset>
 		</copy>
+                <copy todir="${WEAVE_DOCROOT}/../">
+                    <fileset dir="${basedir}">
+                        <include name="WeaveServices.war"/>
+                    </fileset>
+                </copy> 
 	</target>
 
 	<target name="deploy_local" depends="build">
@@ -177,25 +179,23 @@
 	<!-- This target will extract the swf files from the swc archives
 		and extract them to the WEAVE_DESTROOT -->
 	<target name="build" depends="client, admin, uispark, ui, data, core, api, services">
-		<mkdir dir="${WEAVE_DESTROOT}" />
-		<extract_swc swc="${basedir}/${API}/bin/${API}.swc" rsl="${API}.swf" />
-		<extract_swc swc="${basedir}/${CORE}/bin/${CORE}.swc" rsl="${CORE}.swf" />
-		<extract_swc swc="${basedir}/${DATA}/bin/${DATA}.swc" rsl="${DATA}.swf" />
-		<extract_swc swc="${basedir}/${UISPARK}/bin/${UISPARK}.swc" rsl="${UISPARK}.swf" />
-		<extract_swc swc="${basedir}/${UI}/bin/${UI}.swc" rsl="${UI}.swf" />
-
-		<copy file="${basedir}/${CLIENT}/swf/${FONTS}.swf" tofile="${WEAVE_DESTROOT}/${FONTS}.swf" />
-		<copy file="${basedir}/${CLIENT}/bin/weave.swf" tofile="${WEAVE_DESTROOT}/weave.swf" />
-		<copy file="${basedir}/${ADMIN}/bin/AdminConsole.swf" tofile="${WEAVE_DESTROOT}/AdminConsole.swf" />
-		<copy file="${basedir}/${SERVICES}/build/jar/${SERVICES}.war" tofile="${basedir}/${SERVICES}.war" />
-		<copy file="${FLEX_HOME}/frameworks/rsls/${FRAMEWORK_SWF}" tofile="${WEAVE_DESTROOT}/framework.swf" />
-		<copy file="${FLEX_HOME}/frameworks/rsls/${RPC_SWF}" tofile="${WEAVE_DESTROOT}/rpc.swf" />
-
-		<copy file="${FLEX_HOME}/frameworks/rsls/${SPARK_SWF}" tofile="${WEAVE_DESTROOT}/spark.swf" />
-		<copy file="${FLEX_HOME}/frameworks/rsls/${MX_SWF}" tofile="${WEAVE_DESTROOT}/mx.swf" />
-		<copy file="${FLEX_HOME}/frameworks/rsls/${TEXTLAYOUT_SWF}" tofile="${WEAVE_DESTROOT}/textLayout.swf" />
-		<antcall target="admin_wrapper" />
-		<antcall target="client_wrapper" />
+		<mkdir dir="${WEAVE_DESTROOT}"/>
+		<extract_swc swc="${basedir}/${API}/bin/${API}.swc" rsl="${API}.swf"/>
+		<extract_swc swc="${basedir}/${CORE}/bin/${CORE}.swc" rsl="${CORE}.swf"/>
+		<extract_swc swc="${basedir}/${DATA}/bin/${DATA}.swc" rsl="${DATA}.swf"/>
+		<extract_swc swc="${basedir}/${UISPARK}/bin/${UISPARK}.swc" rsl="${UISPARK}.swf"/>
+		<extract_swc swc="${basedir}/${UI}/bin/${UI}.swc" rsl="${UI}.swf"/>
+                <copy file="${basedir}/${CLIENT}/swf/${FONTS}.swf" tofile="${WEAVE_DESTROOT}/${FONTS}.swf"/>
+		<copy file="${basedir}/${CLIENT}/bin/weave.swf" tofile="${WEAVE_DESTROOT}/weave.swf"/>
+		<copy file="${basedir}/${ADMIN}/bin/AdminConsole.swf" tofile="${WEAVE_DESTROOT}/AdminConsole.swf"/>
+		<copy file="${basedir}/${SERVICES}/build/jar/${SERVICES}.war" tofile="${basedir}/${SERVICES}.war"/>
+		<copy file="${FLEX_HOME}/frameworks/rsls/${FRAMEWORK_SWF}" tofile="${WEAVE_DESTROOT}/framework.swf"/>
+		<copy file="${FLEX_HOME}/frameworks/rsls/${RPC_SWF}" tofile="${WEAVE_DESTROOT}/rpc.swf"/>
+                <copy file="${FLEX_HOME}/frameworks/rsls/${SPARK_SWF}" tofile="${WEAVE_DESTROOT}/spark.swf"/>
+                <copy file="${FLEX_HOME}/frameworks/rsls/${MX_SWF}" tofile="${WEAVE_DESTROOT}/mx.swf"/>
+                <copy file="${FLEX_HOME}/frameworks/rsls/${TEXTLAYOUT_SWF}" tofile="${WEAVE_DESTROOT}/textLayout.swf"/>
+		<antcall target="admin_wrapper"/>
+		<antcall target="client_wrapper"/>
 	</target>
 
 	<!-- These targets will build each project -->
@@ -209,10 +209,10 @@
 		<buildproject targetproject="${DATA}" targetfileext="swc" />
 	</target>
 	<target name="uispark" depends="data">
-		<buildproject targetproject="${UISPARK}" targetfileext="swc" />
+		<buildproject targetproject="${UISPARK}" targetfileext="swc"/>
 	</target>
 	<target name="ui" depends="uispark">
-		<buildproject targetproject="${UI}" targetfileext="swc" />
+		<buildproject targetproject="${UI}" targetfileext="swc"/>
 	</target>
 	<target name="client" depends="ui">
 		<buildproject targetproject="${CLIENT}" targetfileext="swf" />
@@ -245,11 +245,37 @@
 
 
 	<target name="admin_wrapper">
-		<html-wrapper output="${WEAVE_DESTROOT}" file="AdminConsole.html" swf="AdminConsole" history="false" version-major="10" version-minor="2" version-revision="0" height="100%" width="100%" title="AdminConsole" express-install="true" bgcolor="#7B96B6" />
+		<html-wrapper 
+			output="${WEAVE_DESTROOT}"
+			file="AdminConsole.html"
+			swf="AdminConsole"
+			history="false"
+			version-major="10"
+			version-minor="2"
+			version-revision="0"
+			height="100%"
+			width="100%"
+			title="AdminConsole"
+			express-install="true"
+			bgcolor="#7B96B6"
+		/>
 	</target>
 
 	<target name="client_wrapper">
-		<html-wrapper output="${WEAVE_DESTROOT}" file="weave.html" swf="weave" history="false" version-major="10" version-minor="2" version-revision="0" height="100%" width="100%" title="weave" express-install="true" bgcolor="#7B96B6" />
+		<html-wrapper 
+			output="${WEAVE_DESTROOT}"
+			file="weave.html"
+			swf="weave"
+			history="false"
+			version-major="10"
+			version-minor="0"
+			version-revision="0"
+			height="100%"
+			width="100%"
+			title="weave"
+			template="express-installation"
+			bgcolor="#7B96B6"
+		/>
 	</target>
 	<macrodef name="extract_swc">
 		<attribute name="swc" />

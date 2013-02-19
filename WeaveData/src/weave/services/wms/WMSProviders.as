@@ -83,8 +83,8 @@ package weave.services.wms
 		public static const STAMEN_TONER:String = 'Stamen Toner';
 		public static const STAMEN_TERRAIN:String = 'Stamen Terrain';
 		public static const STAMEN_WATERCOLOR:String = 'Stamen Watercolor';
-		/*
-		 * public static const CRI:String = 'CRI'; */
+		public static const CUSTOM_MAP:String = 'Custom Map';
+		
 		public static const MICROSOFT1:String = 'Microsoft Aerial';
 		public static const MICROSOFT2:String = 'Microsoft RoadMap';
 		public static const MICROSOFT3:String = 'Microsoft Hybrid';

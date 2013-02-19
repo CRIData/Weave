@@ -35,8 +35,8 @@ package weave.visualization.plotters
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Range;
-	import weave.services.DelayedAsyncResponder;
 	import weave.services.WeaveRServlet;
+	import weave.services.addAsyncResponder;
 	import weave.services.beans.RResult;
 	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -92,11 +92,11 @@ package weave.visualization.plotters
 					+"slope <- coefficients(fit)[2]\n"
 					+"rSquared <- summary(fit)$r.squared\n";
 				
-				var dataXY:Array = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, keySet.keys);
+				var dataXY:Array = ColumnUtils.joinColumns([xColumn, yColumn], Number, false, filteredKeySet.keys);
 				
 				// sends a request to Rserve to calculate the slope and intercept of a regression line fitted to xColumn and yColumn 
 				var token:AsyncToken = rService.runScript(null,["x","y"],[dataXY[1],dataXY[2]],["intercept","slope","rSquared"],Rstring,"",false,false,false);
-				DelayedAsyncResponder.addResponder(token, handleLinearRegressionResult, handleLinearRegressionFault, ++requestID);
+				addAsyncResponder(token, handleLinearRegressionResult, handleLinearRegressionFault, ++requestID);
 			}
 		}
 		private var requestID:int = 0; // ID of the latest request, used to ignore old results
