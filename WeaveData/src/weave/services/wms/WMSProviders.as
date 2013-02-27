@@ -32,7 +32,7 @@ package weave.services.wms
 	{
 		{ /** BEGIN STATIC CODE BLOCK **/
 			_providersToSRS[NASA] = OnEarthProvider.IMAGE_PROJECTION_SRS;
-			_providersToSRS[BLUE_MARBLE_MAP] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
+			//_providersToSRS[BLUE_MARBLE_MAP] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
 			_providersToSRS[OPEN_STREET_MAP] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
 			_providersToSRS[MAPQUEST] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
 			_providersToSRS[MAPQUEST_AERIAL] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
@@ -40,7 +40,9 @@ package weave.services.wms
 			_providersToSRS[STAMEN_TONER] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
 			_providersToSRS[STAMEN_TERRAIN] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
 			_providersToSRS[STAMEN_WATERCOLOR] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
+			_providersToSRS[CUSTOM_MAP] = CustomWMS.IMAGE_PROJECTION_SRS;
 			//_providersToSRS[CRI] = CriProvider.IMAGE_PROJECTION_SRS;
+			_providersToSRS[CUSTOM_MAP] = CustomWMS.IMAGE_PROJECTION_SRS;
 			_providersToSRS[MICROSOFT1] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
 			_providersToSRS[MICROSOFT2] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
 			_providersToSRS[MICROSOFT3] = ModestMapsWMS.IMAGE_PROJECTION_SRS;

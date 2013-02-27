@@ -51,7 +51,7 @@ package weave.services.wms
 			var sourceCoord:Coordinate = sourceCoordinate(coord);
 		
 		
-			var urlString:String = "http://yoururl.com/path/to/service/"
+			var urlString:String = "http://yourwms.com/"
 									+ sourceCoord.zoom + '/' + sourceCoord.column + '/'
 									+ sourceCoord.row 
 									+ '.png';
