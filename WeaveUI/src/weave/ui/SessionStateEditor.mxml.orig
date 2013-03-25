@@ -1,0 +1,836 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---	
+A text editor to change the Session State on the fly.
+@author skolman
+@author adufilie
+@author kmonico
+-->
+<ui:DraggablePanel
+    xmlns:ui ="weave.ui.*"
+    xmlns:mx="http://www.adobe.com/2006/mxml"
+    width="800" height="600"
+    title="{lang('Session State Editor')}"
+	backgroundColor="#EFF4BC"
+	escapeKeyClosesPanel="true"
+    >
+	<mx:VDividedBox id="vDividedBox" width="100%" height="100%" liveDragging="true">
+	    <mx:VBox horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" height="100%"
+				 paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
+			<mx:HBox width="100%">
+				<mx:Button label="{lang('Reload')}" toolTip="{lang('Reloads to previous save state')}" click="refresh()" paddingLeft="5" paddingRight="5"/>
+				<mx:Button label="{lang('Apply')}" click="handleApplyClick()" paddingLeft="5" paddingRight="5"/>
+				<mx:Button label="{lang('Save &amp; Close')}" click="saveAndClosePanel()" paddingLeft="5" paddingRight="5"/>
+				<mx:Button label="{lang('Cancel')}" click="removePanel()" paddingLeft="5" paddingRight="5"/>
+			</mx:HBox>
+			<mx:HDividedBox width="100%" height="100%">
+				<mx:VBox id="listVBox" width="100%" height="100%">
+					<!--<mx:Label paddingTop="5" fontWeight="bold" text="Object Hierarchy"/>-->
+					<!--<CustomComboBox maxWidth="{listVBox.width}" id="sessionObjectTypeComboBox" toolTip="select filter to list by session object type" change="handleSessionObjectTypeFilterSelect(event)"/>-->
+	 				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"
+										 focusIn="checkObjectWasDisposed()"/>
+					<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off" backgroundAlpha="0">
+	 					<mx:TextInput id="linkNameInput" width="100%"/>
+	 					<mx:Button label="{lang('Link to global object')}" click="linkSelectedObject();"/>
+	 					<mx:Button id="unlinkButton" label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
+	 				</mx:HBox>
+				</mx:VBox>
+				<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
+					<mx:HBox width="100%" horizontalAlign="right">
+						<ui:TextInputWithPrompt id="search" prompt="{lang('Enter search text')}" enter="highlightSearchText(false)" change="searchTermChanged()" width="100%" minWidth="100"/>
+						<mx:Button label="{lang('Search')}" click="highlightSearchText(true)" repeatDelay="1"/>
+					</mx:HBox>
+					<mx:ViewStack id="editors" width="100%" height="100%">
+						<mx:VBox width="100%" height="100%">
+							<mx:HBox width="100%">
+								<mx:Label id="firstLine" fontFamily="_typewriter"/>
+								<mx:Spacer width="100%"/>
+								<mx:Button label="Copy" click="copyToClipboard();"/>
+							</mx:HBox>
+							<mx:TextArea id="textEditor" wordWrap="false" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
+										 fontFamily="_typewriter" change="handleTextAreaChange()" width="100%" height="100%"/>
+							<mx:Label id="lastLine" fontFamily="_typewriter"/>
+						</mx:VBox>
+						<mx:Canvas width="100%" height="100%">
+							<mx:DataGrid id="gridEditor" wordWrap="false" editable="true" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
+										 fontFamily="_typewriter" itemEditEnd="handleDataGridChange(event)" width="100%" height="100%" verticalScrollPolicy="auto" 
+										 horizontalScrollPolicy="auto" variableRowHeight="false" rowHeight="24"/> 
+						</mx:Canvas>
+					</mx:ViewStack>
+					<mx:HBox width="100%">
+						<mx:CheckBox id="preferDataGrid" label="{lang('Prefer Grid View')}" click="handlePreferDGChange()" toolTip="{lang('Check this box to prefer the grid view when possible.')}"
+									 selected="true"/>
+						<mx:Spacer width="100%"/>
+						<mx:Button id="showConsole" label="{lang('Show console')}" toggle="true" selected="{console.height > 0}" click="toggleShowConsole()"/>
+					</mx:HBox>
+				</mx:VBox>
+			</mx:HDividedBox>
+		</mx:VBox>
+		<ui:Console id="console" height="0"/>
+	</mx:VDividedBox>
+	<mx:Script>
+		<![CDATA[
+			import flash.desktop.Clipboard;
+			import flash.desktop.ClipboardFormats;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.containers.VBox;
+			import mx.controls.Alert;
+			import mx.controls.dataGridClasses.DataGridColumn;
+<<<<<<< HEAD
+			import mx.core.INavigatorContent;
+=======
+			import mx.core.INavigatorContent;
+			import mx.core.UIComponent;
+>>>>>>> refs/remotes/upstream/master
+			import mx.core.mx_internal;
+			import mx.events.CloseEvent;
+			import mx.events.DataGridEvent;
+			import mx.managers.ISystemManager;
+			import mx.managers.PopUpManager;
+			import mx.utils.ObjectUtil;
+			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
+			import weave.api.core.ILinkableVariable;
+			import weave.api.data.IColumnWrapper;
+			import weave.api.getCallbackCollection;
+			import weave.api.getLinkableOwner;
+			import weave.api.getSessionState;
+			import weave.api.objectWasDisposed;
+			import weave.api.reportError;
+			import weave.api.setSessionState;
+			import weave.core.DynamicState;
+			import weave.core.LinkableString;
+			import weave.core.SessionManager;
+			import weave.core.WeaveXMLDecoder;
+			import weave.core.WeaveXMLEncoder;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.ExtendedDynamicColumn;
+			import weave.utils.DebugUtils;
+			import weave.utils.PopUpUtils;
+			use namespace mx_internal;
+
+		    private var _needRefresh:Boolean = false;
+		    private const refreshTimer:Timer = new Timer(200, 0);
+			private var autoRefresh:Boolean = false;
+		    private var _textModified:Boolean = false;
+			
+			private var _currentSelectedObject:ILinkableObject = null;
+			private var _currentSessionStateXML:XML = null;
+			private var _currentSessionStateDataProvider:ArrayCollection = null; 
+			private var _prevSelectedObject:ILinkableObject = null;
+			
+			private var _textStartSearchIndex:int = 0;
+			private var _gridStartSearchIndex:int = 0; 
+			
+			private static const DATA_GRID:String = 'DataGrid';
+			private static const TEXT_EDITOR:String = 'TextArea';
+			private const NAME_FIELD:String = "Name";
+			private const VALUE_FIELD:String = "Value";
+			private var _editor:String = DATA_GRID;
+			private const _nameColumn:DataGridColumn = new DataGridColumn(NAME_FIELD);
+			private const _valueColumn:DataGridColumn = new DataGridColumn(VALUE_FIELD);
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				panelWidth.value = "75%";
+				panelHeight.value = "75%";
+				panelX.value = "12.5%";
+				panelY.value = "12.5%";
+			}
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				var subMenu:SubMenu = new SubMenu(unlinkButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
+				subMenu.addSubMenuItem('Unlink all nested dynamic columns', unlinkNestedColumns);
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+
+				refreshTimer.addEventListener(TimerEvent.TIMER, handleRefreshTimer);
+				refreshTimer.start();
+				
+				//handle keyboard event CTRL +F to Search Box
+				this.addEventListener(KeyboardEvent.KEY_DOWN, handleCtrlFPressEvent)
+
+		    	BindingUtils.bindSetter(handleSessionNavSelect, sessionNav, "selectedItem");
+		    	
+				sessionNav.addEventListener(KeyboardEvent.KEY_UP, confirmDeleteSelectedItem);
+				
+				changeView(_editor);
+				_nameColumn.editable = false;
+				_nameColumn.width = 192;
+				loadSelectedSessionObjectInView();
+				
+				textEditor.getTextField().alwaysShowSelection = true;
+		    }
+			
+			private function checkObjectWasDisposed():void
+			{
+				if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
+				{
+					_currentSelectedObject = null;
+					_textModified = false;
+					_needRefresh = false;
+					autoRefresh = false;
+					refresh();
+					
+				}
+			}
+			private function handleRefreshTimer(event:TimerEvent):void
+		    {
+				if (objectWasDisposed(this))
+					return;
+				
+				if (visible && parent)
+				{
+					if (autoRefresh && _needRefresh && !_textModified) 
+					{
+						sessionNav.refresh();
+						loadSelectedSessionObjectInView();
+					}
+				}
+		    }
+		    private function handleSelectedObjectGroupCallback():void
+		    {
+		    	_needRefresh = true;
+		    }
+			
+			private function handleEditorFocusIn():void
+			{
+				autoRefresh = true;
+				checkObjectWasDisposed();
+			}
+
+			private function handleTextAreaChange():void
+		    {
+		    	_textModified = true;
+		    }
+		    
+			public function refresh():void
+			{
+				if (_textModified == false || (WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
+				{
+					sessionNav.refresh();
+					return;
+				}
+				
+				_textModified = false;
+				var functionSave:Function = function():void 
+				{ 
+					try
+					{
+						saveSessionState(); 
+						sessionNav.refresh();
+					}
+					catch (e:Error)
+					{
+						reportError(e);
+					}
+				};
+				var functionDontSave:Function = function():void { loadSelectedSessionObjectInView(); sessionNav.refresh(); };
+				askToSave(functionSave, functionDontSave);
+			}
+			
+			private function askToSave(save:Function, discard:Function):void
+			{
+				PopUpUtils.confirm(
+					this,
+					lang("Save?"),
+					lang("Session state has been changed.  Save Changes?"),
+					save, discard,
+					lang('Save'), lang('Discard')
+				);
+			}
+
+			private function loadSelectedSessionObjectInView(sessObj:ILinkableObject = null):void
+			{
+				// to avoid a flex error, make sure the dataGrid has no selected items
+				if (_editor == DATA_GRID)
+				{
+					gridEditor.selectedItems = [];
+				}
+				
+				_needRefresh = false;
+
+				if (sessionNav.selectedItem == null && sessObj == null)
+				{
+					// clear and disable view
+					if (_editor == TEXT_EDITOR)
+					{
+						textEditor.text = '';
+					}
+					else if (_editor == DATA_GRID)
+					{
+						var item:Object = {};
+						item[NAME_FIELD] = '';
+						item[VALUE_FIELD] = ' ';
+						gridEditor.dataProvider = [item];
+					}
+					editors.enabled = false;
+					return;
+				}
+
+				// enable view
+				editors.enabled = true;
+				
+				if (sessObj != null)
+					_currentSelectedObject = sessObj;
+				else
+					_currentSelectedObject = sessionNav.selectedItem.object;
+
+				loadSessionStateInView();
+				_textModified = false;
+			}
+			
+			private function unlinkNestedColumns():void
+			{
+				var selected:IColumnWrapper = sessionNav.getSelectedLinkableObject() as IColumnWrapper;
+		    	if (!selected)
+				{
+					reportError('Please select a DynamicColumn.');
+					return;
+				}
+				
+				var col:IColumnWrapper = selected;
+				while (col)
+				{
+					var dc:DynamicColumn = col as DynamicColumn;
+					var edc:ExtendedDynamicColumn = col as ExtendedDynamicColumn;
+					if (dc && dc.globalName) // if linked
+					{
+						// unlink
+						dc.globalName = null;
+						// prevent infinite loop
+						if (dc.globalName)
+							break;
+						// restart from selected
+						col = selected;
+					}
+					else if (edc && edc.internalDynamicColumn.globalName) // if linked
+					{
+						// unlink
+						edc.internalDynamicColumn.globalName = null;
+						// prevent infinite loop
+						if (edc.internalDynamicColumn.globalName)
+							break;
+						// restart from selected
+						col = selected;
+					}
+					else
+					{
+						// get nested column
+						col = col.getInternalColumn() as IColumnWrapper;
+					}
+				}
+				refresh();
+			}
+
+		    private function linkSelectedObject():void
+		    {
+				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedLinkableObject() as ILinkableDynamicObject;
+		    	if (dynamicObject)
+		    	{
+		    		dynamicObject.globalName = linkNameInput.text.length > 0 ? linkNameInput.text : null;
+		    		refresh();
+		    	}
+		    }
+			private function handleSessionNavSelect(selectedItem:Object):void
+			{
+				var vsp:Number = gridEditor.verticalScrollPosition;
+				if (selectedItem)
+					console.context = selectedItem.object;
+				
+				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedLinkableObject() as ILinkableDynamicObject;
+				if (dynamicObject)
+				{
+					linkNameInput.text = dynamicObject.globalName;
+					linkControls.enabled = true;
+				}
+				else
+				{
+					linkNameInput.text = '';
+					linkControls.enabled = false;
+				}
+				
+				if (_textModified)
+					refresh();
+				else
+					loadSelectedSessionObjectInView();
+				
+				gridEditor.verticalScrollPosition = vsp;
+			}
+			
+		    private function handleApplyClick():void
+		    {
+				saveSessionState();
+				refresh();
+		    }
+
+			private function highlightSearchText(switchFocus:Boolean):Boolean
+			{
+				var i:int;
+				var searchTerm:String = search.text.toLowerCase();
+				if (_editor == TEXT_EDITOR)
+				{
+					var text:String = textEditor.text.toLowerCase();
+					// search through the text
+					for (i = 0; i < 2; i++) // 
+					{
+						_textStartSearchIndex = text.indexOf(searchTerm, _textStartSearchIndex + 1); // +1 so it won't find the same thing twice 
+						if (_textStartSearchIndex >= 0)
+						{
+							textEditor.setSelection(_textStartSearchIndex, _textStartSearchIndex+searchTerm.length);
+							if (switchFocus)
+								textEditor.setFocus();
+							return true;
+						}
+						//end of file reached. start search again.
+					}
+				}
+				else if (_editor == DATA_GRID)
+				{
+					// this loop is to make sure we wrap around to find it
+					for (var j:int = 0; j < 2; ++j)
+					{
+						var rows:Array = _currentSessionStateDataProvider.source;
+						
+						for (i = _gridStartSearchIndex + 1; i < rows.length; ++i)
+						{
+							var row:Object = rows[i];
+							for each (var string:String in row)
+							{
+								if (string === null)
+									continue;
+								_gridStartSearchIndex = string.toLowerCase().indexOf(searchTerm);
+								if (_gridStartSearchIndex >= 0)
+								{
+									_gridStartSearchIndex = i;
+									gridEditor.selectedIndex = i;
+									gridEditor.validateNow();
+									gridEditor.scrollToIndex(i);
+									return true;
+								}
+							}
+						}
+					}
+				}
+				
+				Alert.show(lang("Not found: ")+searchTerm, lang("Search"));
+				return false;
+			}
+			
+			private function searchTermChanged():void
+			{
+				_textStartSearchIndex = -1;
+				_gridStartSearchIndex = -1;
+			}
+			
+			private function handleCtrlFPressEvent(event:KeyboardEvent):void
+			{
+				if (event.ctrlKey && event.keyCode == 70)
+				{
+					search.setFocus();
+				}
+			}
+			
+			private function getItemLabel(item:Object):String
+			{
+				var node:XML = XML(item);
+				
+				if (node.@name.toString() != "")
+					return node.@name.toString();
+				else
+					return node.name().toString();
+			}
+			private function confirmDeleteSelectedItem(event:KeyboardEvent):void
+			{
+				if (event.keyCode == Keyboard.DELETE || event.keyCode == Keyboard.BACKSPACE)
+				{
+					var parent:ILinkableObject = getLinkableOwner(sessionNav.selectedItem.object);
+					if (!parent)
+						return;
+					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
+					var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
+					if (hashMap || dynamicObject)
+						Alert.show(lang("Delete Selected Item?"),lang("Confirm Delete"),mx.controls.Alert.YES| mx.controls.Alert.NO,this,deleteSelectedItem)
+				}
+			}
+			
+			private function deleteSelectedItem(event:CloseEvent):void
+			{
+				if (event.detail == Alert.YES)
+				{
+					var parent:ILinkableObject = getLinkableOwner(sessionNav.selectedItem.object);
+					if (!parent)
+						return;
+					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
+					var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
+					
+					var oldObject:ILinkableObject = sessionNav.selectedItem.object;
+					if (hashMap)
+						hashMap.removeObject(hashMap.getName(oldObject));
+					else if (dynamicObject)
+						dynamicObject.removeObject();
+					
+					if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(oldObject))
+						refresh();
+					else
+						Alert.show(lang("Object is locked and cannot be deleted."), lang("Delete Failed"));
+				}
+			}
+
+			private function handleDataGridChange(event:DataGridEvent):void
+			{
+				var row:int = int(event.rowIndex);
+				var element:String = gridEditor.dataProvider.getItemAt(row)[NAME_FIELD];
+				var oldValue:String = gridEditor.dataProvider.getItemAt(row)[VALUE_FIELD];
+				var newValue:String = gridEditor.itemEditorInstance[gridEditor.columns[event.columnIndex].editorDataField];
+				newValue = newValue.replace(/(\r\n)|\r/gm, "\n");
+				gridEditor.itemEditorInstance[gridEditor.columns[event.columnIndex].editorDataField] = newValue;
+
+				if ( oldValue != newValue ) 
+					_textModified = true;
+			}
+
+			private function handlePreferDGChange():void
+			{
+				var newEditor:String = preferDataGrid.selected ? DATA_GRID : TEXT_EDITOR;
+				changeView(newEditor);
+				loadSelectedSessionObjectInView();
+			}
+			
+			private function changeView(newValue:String = null):void
+			{
+				if (newValue == null)
+					newValue = _editor == DATA_GRID ? TEXT_EDITOR : DATA_GRID;
+				_editor = newValue;
+				editors.selectedChild = (_editor == DATA_GRID ? gridEditor.parent : textEditor.parent) as INavigatorContent;
+				//loadSelectedSessionObjectInView();
+			}
+			
+			private function loadSessionStateInView():void
+			{
+				var vsp:Number;
+				var hsp:Number;
+				var sessionState:Object = _currentSelectedObject ? getSessionState(_currentSelectedObject) : null;
+				if (_prevSelectedObject != _currentSelectedObject)
+				{
+					if (_prevSelectedObject)
+						getCallbackCollection(_prevSelectedObject).removeCallback(handleSelectedObjectGroupCallback);
+					_prevSelectedObject = _currentSelectedObject;
+					if (_currentSelectedObject)
+						getCallbackCollection(_currentSelectedObject).addGroupedCallback(this, handleSelectedObjectGroupCallback);
+					hsp = 0;
+					vsp = 0;
+				}
+
+				if (_currentSelectedObject is ILinkableVariable || _currentSelectedObject is ILinkableDynamicObject)
+					changeView(TEXT_EDITOR);
+				else
+					changeView( (preferDataGrid.selected) ? DATA_GRID : TEXT_EDITOR );
+				
+				if (_editor == TEXT_EDITOR)
+				{
+					vsp = textEditor.verticalScrollPosition;
+					hsp = textEditor.horizontalScrollPosition;
+
+					if (_currentSelectedObject is LinkableString)
+					{
+						_currentSessionStateXML = null;
+						textEditor.text = sessionState as String;
+						
+						firstLine.text = '';
+						lastLine.text = '';
+					}
+					else
+					{
+						_currentSessionStateXML = WeaveXMLEncoder.encode(sessionState,"SessionState");
+						textEditor.text = _currentSessionStateXML.children().toXMLString();
+						
+						var xmlCopy:XML = _currentSessionStateXML.copy();
+						xmlCopy.setChildren(<dummy/>);
+						var xmlLines:Array = xmlCopy.toString().split('\n');
+						firstLine.text = xmlLines[0];
+						lastLine.text = xmlLines[xmlLines.length - 1];
+					}
+					textEditor.validateNow();
+					textEditor.verticalScrollPosition = vsp;
+					textEditor.horizontalScrollPosition = hsp;
+				}
+				else if (_editor == DATA_GRID)
+				{
+					var tempValue:Object;
+					var dataGridProvider:ArrayCollection = new ArrayCollection();
+					var childObject:ILinkableObject;
+					
+					for each (var node:Object in sessionNav.selectedItem.children)
+					{
+						childObject = node.object as ILinkableObject;
+						if (childObject is ILinkableVariable)
+						{
+							tempValue = getSessionState(childObject);
+							if (tempValue === null || (tempValue as String) === '')
+								tempValue = ' ';
+							var item:Object = {};
+							item[NAME_FIELD] = node.label;
+							item[VALUE_FIELD] = tempValue.toString();
+							dataGridProvider.addItem(item);
+						}
+					}
+
+					vsp = gridEditor.verticalScrollPosition;
+					_currentSessionStateDataProvider = dataGridProvider;
+					gridEditor.columns = [ _nameColumn, _valueColumn ];
+					gridEditor.dataProvider = dataGridProvider;
+					gridEditor.editable = true;
+					gridEditor.variableRowHeight = false;
+					gridEditor.wordWrap = false;
+					gridEditor.validateNow();
+					gridEditor.verticalScrollPosition = vsp;
+				}
+			}
+			
+			private function saveSessionState():void
+		    {
+				_textModified = false;
+				
+				if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_currentSelectedObject))
+				{
+					refresh();
+					return;
+				}
+				
+				try
+				{
+					if (_currentSelectedObject != null)
+					{
+						if (_editor == TEXT_EDITOR)
+						{
+							if (_currentSelectedObject is LinkableString || _currentSessionStateXML == null)
+							{
+								setSessionState(_currentSelectedObject, textEditor.text);
+							}
+							else
+							{
+								var xmlList:XMLList = XMLList(textEditor.text); // will throw error if xml is invalid
+								_currentSessionStateXML.setChildren(XMLList(textEditor.text));
+								var decodedStateObject:Object = WeaveXMLDecoder.decode(_currentSessionStateXML);
+								setSessionState(_currentSelectedObject, decodedStateObject, true);
+							}
+						}
+						else if (_editor == DATA_GRID && _currentSessionStateDataProvider != null)
+						{
+							var newValue:Object;
+							var newSessionState:Object;
+							var i:int, j:int;
+							
+							_currentSessionStateDataProvider = gridEditor.dataProvider as ArrayCollection;
+							
+							// special case of just one object to set
+							if (_currentSelectedObject is ILinkableVariable && _currentSessionStateDataProvider.length == 1)
+							{
+								newSessionState = _currentSessionStateDataProvider[0][VALUE_FIELD];
+								if (newSessionState === ' ')
+									newSessionState = '';
+								setSessionState(_currentSelectedObject, newSessionState, true);
+								return;
+							}
+							
+							var oldSessionState:Object = _currentSelectedObject ? getSessionState(_currentSelectedObject) : null;
+							// special case of DynamicState objects
+							if (_currentSelectedObject is ILinkableHashMap) 
+							{
+								newSessionState = (oldSessionState as Array).concat(); // make a copy and copy over the changes
+								for (j = 0; j < _currentSessionStateDataProvider.length; ++j)
+								{
+									var lookupName:String = _currentSessionStateDataProvider[j][NAME_FIELD];
+									for (i = 0; i < newSessionState.length; ++i)
+									{
+										if ((newSessionState[i] as DynamicState).objectName == lookupName)
+										{
+											newValue = _currentSessionStateDataProvider[j][VALUE_FIELD];
+											if (newValue === ' ')
+												newValue = '';
+											(newSessionState[i] as DynamicState).sessionState = WeaveXMLDecoder.decode(<tag>{newValue}</tag>);
+											break;
+										}
+									}
+								}
+								
+								setSessionState(_currentSelectedObject, newSessionState, false);
+								return;
+							}
+							
+							// general case of just an object mapping
+							newSessionState = new Object();
+							for (i = 0; i < _currentSessionStateDataProvider.length; ++i)
+							{
+								newValue = _currentSessionStateDataProvider[i][VALUE_FIELD];
+								if (newValue === ' ')
+									newValue = '';
+								newSessionState[_currentSessionStateDataProvider[i][NAME_FIELD]] = newValue;
+							}
+							
+							setSessionState(_currentSelectedObject, newSessionState, false); // do not remove any missing things
+						}
+					}
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
+		    }
+
+			private function saveAndClosePanel():void
+		    {
+				try
+				{
+					saveSessionState();
+					super.removePanel();
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
+		    }
+			
+			override public function removePanel():void
+			{
+				if (_textModified)
+					askToSave(saveAndClosePanel, super.removePanel);
+				else
+					super.removePanel();
+			}
+			
+			private function toggleShowConsole():void
+			{
+				if (console.height == 0)
+				{
+					// make sure the divider moves appropriately
+					vDividedBox.moveDivider(vDividedBox.getChildIndex(console) - 1, -vDividedBox.height / 2);
+					console.percentHeight = 100;
+					console.input.setFocus();
+				}
+				else
+				{
+					console.percentHeight = 0;
+				}
+			}
+			
+			private function copyToClipboard():void
+			{
+				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, textEditor.text);
+			}
+			
+			//-----------------------------------------------------------------
+			
+			// STATIC CODE - ADD KEYDOWN LISTENER IF RUNNING DEBUG PLAYER
+			private static function _initialize():void
+			{
+				if (Capabilities.isDebugger)
+					WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
+			}
+			_initialize();
+			
+			private static var _instance:SessionStateEditor;
+			public static function getInstance():SessionStateEditor
+			{
+				if (!_instance)
+					_instance = new SessionStateEditor();
+				return _instance;
+			}
+			
+			public static function openDefaultEditor(rootObject:ILinkableObject = null):void
+			{
+				var defaultEditor:SessionStateEditor = getInstance();
+				if (!defaultEditor.parent)
+					PopUpManager.addPopUp(defaultEditor, WeaveAPI.topLevelApplication as DisplayObject);
+				
+				if (rootObject == null)
+					rootObject = Weave.root;
+				
+				defaultEditor.sessionNav.rootObject = rootObject;
+				defaultEditor.refresh();
+				defaultEditor.restorePanel();
+			}
+			
+			private static var _profileWithErrorLogPanel:Boolean = true;
+			private static var _showProfileData:Boolean = false;
+			private static function handleKeyDown():void
+			{
+				var event:KeyboardEvent = WeaveAPI.StageUtils.keyboardEvent;
+				if (event.keyCode == Keyboard.F8) // F8 to show profile data
+				{
+					// hold ctrl to toggle which panel to open
+					if (event.ctrlKey)
+						_profileWithErrorLogPanel = !_profileWithErrorLogPanel;
+					
+					var profileDump:Object = DebugUtils.profileDump(event.shiftKey); // hold shift to reset profile data
+					var console:Console;
+					if (_profileWithErrorLogPanel)
+					{
+						ErrorLogPanel.openErrorLog();
+						console = ErrorLogPanel.getInstance().console;
+					}
+					else // use error log panel
+					{
+						var defaultEditor:SessionStateEditor = getInstance();
+						if (!defaultEditor.parent)
+							openDefaultEditor();
+						defaultEditor.restorePanel();
+						// show console
+						if (profileDump && !defaultEditor.showConsole.selected)
+							defaultEditor.toggleShowConsole();
+						console = defaultEditor.console;
+					}
+					
+					// don't show any profile data until we have some.
+					if (!_showProfileData)
+						_showProfileData = profileDump != null;
+					
+					if (_showProfileData)
+						console.consoleTrace(ObjectUtil.toString(profileDump));
+
+					if (console.stage)
+					{
+						var stagePoint:Point = new Point(console.stage.mouseX, console.stage.mouseY);
+						var top:DisplayObject = console.stage.getObjectsUnderPoint(stagePoint).pop();
+						while (top && !(top is ILinkableObject) && !(top.parent is ISystemManager))
+							top = top.parent;
+						if (top)
+							console.consoleTrace(debugId(top));
+					}
+				}
+			}
+		]]>
+	</mx:Script>
+</ui:DraggablePanel>

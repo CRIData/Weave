@@ -1,0 +1,69 @@
+<project name="WeaveServices" basedir=".">
+<<<<<<< HEAD
+	<path id="classpath">
+		<fileset dir="lib" includes="**/*.jar"/>
+		<!-- <fileset dir="external-lib" includes="**/*.jar"/> -->
+		<!-- <fileset dir="/usr/share/java/" includes="junit4.jar"/> -->
+		<fileset dir="/tomcat/7/lib/" includes="servlet-api.jar"/>
+	</path>
+
+	<target name="clean">
+		<delete dir="build"/>
+	</target>
+<target name="testbuild">
+=======
+    <path id="classpath">
+        <fileset dir="lib" includes="**/*.jar"/>
+        <fileset dir="../WeaveServletUtils/lib/" includes="**/*.jar"/>
+        <pathelement path="../WeaveServletUtils/bin/classes"/>
+        <fileset dir="/usr/share/java/" includes="junit4.jar"/>
+        <fileset dir="/usr/share/java/" includes="servlet-api-2.5.jar"/>
+    </path>
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    <target name="build" depends="clean">
+>>>>>>> refs/remotes/upstream/master
+		<echo message="Compiling ${ant.project.name}..."/>
+<<<<<<< HEAD
+        <mkdir dir="build/classes"/>
+        <javac srcdir="src" destdir="build/classes" classpathref="classpath"
+                debug="true"
+                debuglevel="lines,vars,source">
+                <exclude name="weave/servlets/*"/>
+        </javac>
+        <copy file="src/weave/config/sqlconfig.dtd" tofile="build/classes/weave/config/sqlconfig.dtd"/>
+    </target>	
+    <target name="build">
+		<echo message="Compiling ${ant.project.name}..."/>
+        <mkdir dir="build/classes"/>
+        <javac srcdir="src" destdir="build/classes" classpathref="classpath"
+=======
+        <mkdir dir="bin/classes"/>
+        <javac srcdir="src" destdir="bin/classes" classpathref="classpath"
+>>>>>>> refs/remotes/upstream/master
+                debug="true"
+                debuglevel="lines,vars,source"/>
+        <copy file="src/weave/config/sqlconfig.dtd" tofile="bin/classes/weave/config/sqlconfig.dtd"/>
+    </target>
+    <target name="dist" depends="build">
+        <mkdir dir="bin"/>
+        <war destfile="bin/WeaveServices.war" webxml="WebContent/WEB-INF/web.xml">
+            <lib dir="lib/"/>
+            <lib dir="../WeaveServletUtils/lib"/>
+            <classes dir="bin/classes"/>
+            <classes dir="../WeaveServletUtils/bin/classes"/>
+            <webinf dir="WebContent/WEB-INF"/>
+            <metainf dir="WebContent/META-INF"/>
+        </war>
+    </target>
+    <target name="doc">
+        <echo message="Building docs for ${ant.project.name}..."/>
+        <mkdir dir="${basedir}/javadoc/"/>
+        <javadoc destdir="${basedir}/javadoc/"
+            classpathref="classpath">
+            <fileset dir="${basedir}/" includes="**/*.java"/>
+            <fileset dir="${basedir}/../WeaveServletUtils/" includes="**/*.java"/>
+        </javadoc>
+    </target>
+</project>

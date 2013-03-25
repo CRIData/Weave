@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<admin:WizardViewStack
+			xmlns:mx="http://www.adobe.com/2006/mxml"
+			xmlns:ui="weave.ui.*"
+			xmlns:admin="weave.ui.admin.*"
+			xmlns="weave.ui.admin.wizards.*" 
+			label="{lang('Import CSV data to Weave')}"
+			creationComplete="handleCreationComplete()"
+			>
+	
+	<mx:VBox id="csvUploadPage" label="{lang('Import a CSV file to SQL')}">
+<<<<<<< HEAD
+		<ui:Indent group="{tableSelector.indentGroup}" label="{lang('CSV file')}" >
+=======
+		<mx:CheckBox id="noAppendCheckBox" label="{lang('Create new Weave table entry even if a matching one already exists')}"/>
+		<ui:Indent group="{tableSelector.indentGroup}" label="{lang('CSV file')}" >
+>>>>>>> refs/remotes/upstream/master
+			<!-- csvFileNameInput editable because user may want to type the name of a file already on the server -->
+<<<<<<< HEAD
+			<ui:TextInputWithPrompt id="csvFileNameInput" prompt="{lang('Select a CSV file.')}" change="enableAllWidgets(csvFileNameInput.text.length > 0)" editable="true"/>
+			<mx:Button label="{lang('Upload File')}" click="browseAndUpload();"/>
+			<mx:Button label="{lang('Choose File on Server')}" click="openServerBrowser();" />
+=======
+			<ui:TextInputWithPrompt id="csvFileNameInput" prompt="{lang('Select a CSV file.')}" change="enableAllWidgets(csvFileNameInput.text ? true : false)" editable="true"/>
+			<mx:Button label="{lang('Upload File')}" click="browseAndUpload();"/>
+			<mx:Button label="{lang('Choose File on Server')}" click="openServerBrowser();" />
+>>>>>>> refs/remotes/upstream/master
+			<mx:Text id="fileStatus"/>
+		</ui:Indent>
+<<<<<<< HEAD
+		<mx:VBox visible="{csvFileNameInput.asTextInput().text.length > 0}">
+			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{Admin.instance.currentUserIsSuperuser}"/>
+=======
+		<mx:VBox visible="{csvFileNameInput.asTextInput().text ? true : false}">
+			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{Admin.instance.currentUserIsSuperuser}"/>
+>>>>>>> refs/remotes/upstream/master
+		</mx:VBox>
+	</mx:VBox>
+	
+	<mx:VBox id="optionalSettingsPage" label="{lang('Configure data for Weave')}">
+		<ui:Indent label="{lang('Table display name')}">
+			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="{lang('Enter a table name')}" text="{tableSelector.activeTable}"/>
+			<ui:HelpComponent>This is the name that will be visible in Weave.</ui:HelpComponent>
+		</ui:Indent>
+		<ui:Indent label="{lang('Null flag values')}">
+			<mx:TextInput id="nullFlagInput" editable="true"/>
+			<ui:HelpComponent>
+				If your data has values like "-1" representing missing data, you can enter the values here and Weave will treat them as missing data.  Separate multiple flag values by commas.
+			</ui:HelpComponent>
+		</ui:Indent>
+		<mx:HBox>
+			<mx:CheckBox id="generateKeyColumnCheckBox" selected="true" label="{lang('Generate a new primary key column')}"/>
+			<ui:HelpComponent>
+				This will generate a new unique key for each row.  It is the simplest option, but will not allow you to link the data to other data sets.
+			</ui:HelpComponent>
+		</mx:HBox>
+		<mx:VBox paddingLeft="{paddingIndent}" visible="{!generateKeyColumnCheckBox.selected}">
+			<ui:Indent label="{lang('Key column')}" grouped="false">
+				<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true"/><!-- editable because user may have typed in a file name manually -->
+				<ui:HelpComponent>
+					Select the column whose values uniquely identify the rows in the table.  If there is no such column, you can either use the option to generate a new primary key column, or one of the advanced options below.
+				</ui:HelpComponent>
+			</ui:Indent>
+			
+			<admin:KeyTypeDialog id="keytypeSelector" defaultKeyType="{dataTableNameInput.asTextInput().text}"/>
+			
+			<mx:RadioButtonGroup id="radioGroup"/>
+			<mx:RadioButton label="{lang('Publish data columns as-is')}" selected="true" group="{radioGroup}"/>
+			
+			<mx:RadioButton id="secondaryKeyColumnCheckBox" label="{lang('Format data for Dimension Slider')}" selected="false" group="{radioGroup}"/>
+			<ui:Indent label="{lang('Secondary key column')}"
+					   paddingLeft="{paddingIndent}"
+					   grouped="false"
+					   visible="{secondaryKeyColumnCheckBox.selected}"
+					   includeInLayout="{secondaryKeyColumnCheckBox.selected}">
+				<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="{lang('Select a secondary key column for use with the Dimension Slider')}" />
+			</ui:Indent>
+			
+			<mx:HBox>
+				<mx:RadioButton id="generateFilterColumnsCheckBox" change="keyColumnChange(event)" label="{lang('Generate filtered column queries')}" selected="false" group="{radioGroup}"/>
+				<ui:HelpComponent>
+					This option is to be used when the new data table has a column that refers to keys in another data table but the keys do not uniquely identify rows in the new table.
+					
+					Other columns in the new table can be used to generate SQL queries that will return different subsets of the rows.  The key column will be used to uniquely identify rows in the subsets.
+				</ui:HelpComponent>
+			</mx:HBox>
+			<ui:Indent label="{lang('Columns to use as filters')}" paddingLeft="{paddingIndent}" visible="{generateFilterColumnsCheckBox.selected}">
+				<mx:TextInput id="filterColumnsInput"/>
+				<ui:HelpComponent>
+					Enter the names of columns to be used to break the data into subsets. Separate multiple column names by commas.
+				</ui:HelpComponent>
+			</ui:Indent>
+		</mx:VBox>
+<<<<<<< HEAD
+	</mx:VBox>
+	<mx:VBox id="dublinCorePage" width="100%" label="{lang('Specify Dublin Core metadata')}">
+		<mx:TextArea width="100%" borderThickness="0" editable="false" wordWrap="true" text="{lang('Please fill in this form to add basic Dublin Core metadata elements to the newly imported data set. You can add more elements later in the Data Hierarchies tab.')}"/>
+		<mx:LinkButton label="{lang('Click for Dublin Core Reference')}" click="navigateToURL(new URLRequest('http://dublincore.org/documents/usageguide/elements.shtml'))" />
+=======
+	</mx:VBox>
+	
+	<mx:VBox id="dublinCorePage" width="100%" label="{lang('Specify Dublin Core metadata')}">
+		<mx:TextArea width="100%" borderThickness="0" editable="false" wordWrap="true" text="{lang('Please fill in this form to add basic Dublin Core metadata elements to the newly imported data set. You can add more elements later in the Data Hierarchies tab.')}"/>
+		<mx:LinkButton label="{lang('Click for Dublin Core Reference')}" click="navigateToURL(new URLRequest('http://dublincore.org/documents/usageguide/elements.shtml'))" />
+>>>>>>> refs/remotes/upstream/master
+		<mx:Form>
+<<<<<<< HEAD
+			<mx:FormItem label="{lang('Title')}">
+				<mx:TextInput id="dcTitleTextInput" text="{dataTableNameInput.text}" toolTip="{lang('The name given to the resource. Typically, a Title will be a name by which the resource is formally known.')}"/>
+=======
+			<mx:FormItem label="{lang('Title')}">
+				<mx:TextInput id="dcTitleTextInput" text="{dataTableNameInput.text}"
+							  change="dataTableNameInput.text = dcTitleTextInput.text;"
+							  toolTip="{lang('The name given to the resource. Typically, a Title will be a name by which the resource is formally known.')}"/>
+>>>>>>> refs/remotes/upstream/master
+			</mx:FormItem>
+			<mx:FormItem label="{lang('Subject')}">
+				<mx:TextInput id="dcSubjectTextInput" toolTip="{lang('The topic of the content of the resource. Typically, a Subject will be expressed as keywords or key phrases or classification codes that describe the topic of the resource. Recommended best practice is to select a value from a controlled vocabulary or formal classification scheme.')}"/>
+			</mx:FormItem>
+			<mx:FormItem label="{lang('Description')}">
+				<mx:TextArea id="dcDescriptionTextInput"  toolTip="{lang('An account of the content of the resource. Description may include but is not limited to: an abstract, table of contents, reference to a graphical representation of content or a free-text account of the content.')}"/>
+			</mx:FormItem>
+		</mx:Form>
+<<<<<<< HEAD
+	</mx:VBox>
+=======
+	</mx:VBox>
+	
+>>>>>>> refs/remotes/upstream/master
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import weave.api.WeaveAPI;
+			import weave.api.reportError;
+			import weave.services.Admin;
+			import weave.services.WeaveAdminService;
+			import weave.services.addAsyncResponder;
+			import weave.services.beans.EntityMetadata;
+			import weave.ui.BusyIndicator;
+			import weave.ui.admin.ServerFileViewer;
+
+			
+			private static const paddingIndent:int = 20;
+			private var busyIndicator:BusyIndicator = new BusyIndicator();
+			
+			private var _csvFileReference:FileReference = new FileReference();
+			private var _serverFileBrowser:ServerFileViewer = null;
+			
+			private function handleCreationComplete():void
+			{
+				csvUploadPage.addChild(busyIndicator);
+				hideBusy();
+				_csvFileReference.addEventListener(Event.SELECT, csvFileSelectedHandler);
+				_csvFileReference.addEventListener(ProgressEvent.PROGRESS, handleProgress);
+				_csvFileReference.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
+				_csvFileReference.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+				
+				csvKeyColumnCombo.addEventListener(Event.CHANGE,keyColumnChange);
+				csvSecondaryKeyColumnCombo.addEventListener(Event.CHANGE,keyColumnChange);
+				
+				generateKeyColumnCheckBox.addEventListener(Event.CHANGE, handleGenerateKeyColumnChange);
+				secondaryKeyColumnCheckBox.addEventListener(Event.CHANGE,keyColumnChange);
+					
+				backEnabled = false;
+				nextEnabled = false;
+				finishEnabled = false;
+			}
+			
+			private function showBusy():void
+			{
+				busyIndicator.visible = true;
+			}
+			private function hideBusy(..._):void
+			{
+				busyIndicator.visible = false;
+			}
+			
+			private function handleProgress(event:ProgressEvent):void
+			{
+				WeaveAPI.ProgressIndicator.updateTask(_csvFileReference, event.bytesLoaded / event.bytesTotal);
+			}
+			
+			private function csvFileSelectedHandler(event:Event):void
+			{
+				_csvFileReference.load();
+				WeaveAPI.ProgressIndicator.addTask(_csvFileReference);
+				showBusy();
+			}
+			
+			private function csvFileLoadCompleteHandler(event:Event):void
+			{
+				WeaveAPI.ProgressIndicator.removeTask(_csvFileReference);
+				if (_csvFileReference.data == null)
+				{
+					hideBusy();
+					return;
+				}
+				
+				addAsyncResponder(Admin.service.uploadFile(_csvFileReference.name, _csvFileReference.data), hideBusy, hideBusy);
+				
+				csvFileNameInput.text = _csvFileReference.name;
+				
+				addAsyncResponder(Admin.service.getCSVColumnNames(_csvFileReference.name), handleGetCSVColumnNames, handleCSVFault, _csvFileReference.name);
+			}
+			
+			private function fileErrorHandler(event:IOErrorEvent):void
+			{
+				hideBusy();
+				var fileRef:FileReference = event.target as FileReference;
+				WeaveAdminService.messageDisplay(
+					"File upload failed",
+					"File: " + fileRef.name + "\n" + "Size: " + fileRef.size + "\n" + event.text,
+					true
+				);
+			}
+
+			private function browseAndUpload():void
+			{
+				try
+				{
+					generateKeyColumnCheckBox.selected = true;
+					secondaryKeyColumnCheckBox.selected = false;
+					var fileTypes:Array = [new FileFilter("CSV Files", "*.csv")];
+					_csvFileReference.browse(fileTypes);
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
+			}
+			private function openServerBrowser():void
+			{
+				_serverFileBrowser = ServerFileViewer.createServerFileViewer(this, ServerFileViewer.INPUT_CSV);
+				_serverFileBrowser.selectButton.addEventListener(MouseEvent.CLICK, serverFileBrowserSelectFile);
+			}
+			private function serverFileBrowserSelectFile(e:MouseEvent):void
+			{
+				var tableName:String = _serverFileBrowser.datagrid.selectedItem.name;
+				
+				nextEnabled = false;
+				finishEnabled = false;
+				
+				addAsyncResponder(Admin.service.getCSVColumnNames(tableName), handleGetCSVColumnNames,handleCSVFault,tableName);
+				
+				csvFileNameInput.text = tableName;
+				tableName = tableName.substring(0,tableName.lastIndexOf("."));
+				tableSelector.activeTable = tableName; 
+				
+				PopUpManager.removePopUp(_serverFileBrowser);
+				enableAllWidgets();
+			}
+			
+			private function handleGetCSVColumnNames(e:ResultEvent, token:Object = null):void
+			{
+//				trace("handleGetCSVColumnNames: success - " + e.result);
+				csvKeyColumnCombo.dataProvider = e.result;
+				csvSecondaryKeyColumnCombo.dataProvider = e.result;
+				
+				csvSecondaryKeyColumnCombo.selectedIndex = -1;
+				filterColumnsInput.text = WeaveAPI.CSVParser.createCSV([e.result]);
+				
+				var tableName:String = token as String;
+				
+				//clip the ".csv"
+				tableName = tableName.substring(0, tableName.lastIndexOf("."));
+				
+				tableSelector.activeTable = tableName;
+				enableAllWidgets();
+				finishEnabled = true;
+				nextEnabled = true;
+			}
+			private function handleCSVFault(e:FaultEvent,token:Object=null):void
+			{
+//				trace("handleGetCSVColumnNames: failed");
+				finishEnabled = true;
+			}
+			
+			//enables next and finish buttons(if they are not enabled already) if _csvdata is not empty.
+			//This means the user has already loaded a file and might want to upload a new file or hit the back button by mistake
+			override public function back():void
+			{
+				nextEnabled = true;
+				super.back();
+			}
+			
+			/**
+			 * Adds the new CSV file to the server configuration, then adds the Dublin Core metadata (if any).
+			 */
+			override public function finish():void
+			{
+				var keyColumn:String = generateKeyColumnCheckBox.selected ? '' : csvKeyColumnCombo.text;
+				var secondKeyColumn:String = secondaryKeyColumnCheckBox.selected ? csvSecondaryKeyColumnCombo.text : null;
+				var configTableName:String = dataTableNameInput.text
+				var geometryCollection:String = '';
+				var keyType:String = "";
+				
+				if(generateKeyColumnCheckBox.selected)
+					keyType = configTableName;
+				else
+					keyType = keytypeSelector.selectedKeyType;
+				
+				disable();
+				addAsyncResponder(
+					Admin.service.importCSV(
+						csvFileNameInput.text,
+						keyColumn,
+						secondKeyColumn,
+						tableSelector.activeSchema,
+						tableSelector.activeTable,
+						tableSelector.tableOverwriteCheck.selected,
+						configTableName,
+<<<<<<< HEAD
+						keyType,
+						nullFlagInput.text,
+						(generateFilterColumnsCheckBox.selected && filterColumnsInput.text) ? filterColumnsInput.text.split(",") : null
+=======
+						keyType,
+						nullFlagInput.text,
+						(generateFilterColumnsCheckBox.selected && filterColumnsInput.text) ? filterColumnsInput.text.split(",") : null,
+						!noAppendCheckBox.selected
+>>>>>>> refs/remotes/upstream/master
+					),
+					function handleImportCSV(event:ResultEvent, token:Object = null):void
+					{
+						var tableId:int = int(event.result);
+						
+						const SUBJECT:String = 'subject';
+						const DESCRIPTION:String = 'subject';
+						var em:EntityMetadata = new EntityMetadata();
+						em.publicMetadata[SUBJECT] = dcSubjectTextInput.text;
+						em.publicMetadata[DESCRIPTION] = dcDescriptionTextInput.text;
+						if (em.publicMetadata[SUBJECT] || em.publicMetadata[DESCRIPTION])
+						{
+							addAsyncResponder(
+								Admin.service.updateEntity(tableId, em),
+								function(..._):void { close(); },
+								enable
+							);
+						}
+						else
+						{
+							close();
+						}
+					},
+					enable
+				);
+			}
+			
+			private function enableAllWidgets(enable:Boolean = true):void
+			{
+				tableSelector.enabled = enable;
+				optionalSettingsPage.enabled = enable;
+				backEnabled = enable;
+				nextEnabled = enable;
+				finishEnabled = enable;
+			}
+			
+			/**
+			 * This function will check to see if generate Key Column is checked.
+			 * If it is not checked, then it will perform a check to see if the key column 
+			 * currently selected in the combo box is unique.
+			 * */
+			private function handleGenerateKeyColumnChange(event:Event):void
+			{
+				if (!generateKeyColumnCheckBox.selected)
+				{
+					keyColumnChange(event);
+				}
+				else
+				{
+					//if we are generating new key columns then enable finish and next button
+					//because we are not checking to see if selected key column has unique values.
+					finishEnabled = true;
+					nextEnabled = true;
+				}
+				
+			}
+			
+			private function clearErrors():void
+			{
+				csvKeyColumnCombo.errorString = '';
+				csvSecondaryKeyColumnCombo.errorString = '';
+				finishEnabled = true;
+				nextEnabled = true;
+			}
+			
+			/**
+			 * This function is called to check if the selected key column has unique values.
+			 * If the column does not have unique values we set the errorString on the primary and secondary key
+			 * combo boxes and disable the next and finish buttons.
+			 * */
+			private function keyColumnChange(event:Event=null):void
+			{
+				if (generateFilterColumnsCheckBox.selected || generateKeyColumnCheckBox.selected)
+				{
+					clearErrors();
+					return;
+				}
+
+				finishEnabled = false;
+				nextEnabled = false;
+				
+				var keyColName:String = csvKeyColumnCombo.selectedItem as String;
+				var secKeyColName:String = secondaryKeyColumnCheckBox.selected ? csvSecondaryKeyColumnCombo.selectedItem as String : null;
+				addAsyncResponder(
+					Admin.service.checkKeyColumnForCSVImport(csvFileNameInput.text,keyColName,secKeyColName),
+					handleKeyColumnCheck,
+					handleKeyColumnCheckFault
+				);
+			}
+			
+			private function handleKeyColumnCheck(e:ResultEvent,token:Object=null):void
+			{
+				if (generateFilterColumnsCheckBox.selected || generateKeyColumnCheckBox.selected)
+				{
+					return; //we don't clear errors because because this is an asynchronous call, so we don't want it to update UI, if the result is late.
+				}
+				
+				if (!e.result)
+				{
+					csvKeyColumnCombo.errorString = "Key values are not unique";
+					
+					csvSecondaryKeyColumnCombo.errorString = "Key values are not unique";
+					
+					finishEnabled = false;
+					nextEnabled = false;
+				}
+				else
+				{
+					
+					clearErrors();
+				}
+				
+				csvKeyColumnCombo.invalidateDisplayList();
+				csvSecondaryKeyColumnCombo.invalidateDisplayList();
+			}
+			
+			private function handleKeyColumnCheckFault(e:FaultEvent,token:Object=null):void
+			{
+				reportError("Error checking Key Column");
+			}
+		]]>
+	</mx:Script>
+</admin:WizardViewStack>
