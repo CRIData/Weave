@@ -21,6 +21,8 @@
 package weave.services.wms
 {
 	import flash.utils.Dictionary;
+	
+	import weave.utils.AsyncSort;
 
 	/**
 	 * This class is a collection of static objects and methods regarding the
@@ -47,7 +49,7 @@ package weave.services.wms
 			_providersToSRS[MICROSOFT2] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
 			_providersToSRS[MICROSOFT3] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
 		} /** END STATIC CODE BLOCK **/
-
+		
 		/**
 		 * Gets the valid names of WMS Providers.
 		 */
@@ -57,23 +59,17 @@ package weave.services.wms
 
 			for (var key:String in _providersToSRS)
 				result.push(key);
-
-			result.sort();
+			
+			AsyncSort.sortImmediately(result);
 			return result;
 		}
-
+		
 		/**
 		 * This function will get the SRS code for the WMS provider.
 		 */
 		public static function getSRS(provider:String):String
 		{
-			var temp:String = _providersToSRS[provider] as String;
-
-			// should not occur
-			if (temp == null)
-				return '';
-
-			return temp;
+			return _providersToSRS[provider] || '';
 		}
 
 		public static const NASA:String = 'NASA OnEarth';
