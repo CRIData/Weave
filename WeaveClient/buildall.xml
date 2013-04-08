@@ -36,6 +36,7 @@
 	<property name="UISPARK" value="WeaveUISpark"/>
 	<property name="UI" value="WeaveUI"/>
 	<property name="EXAMPLEPLUGIN" value="WeaveExamplePlugin"/>
+	<property name="CRIPLUGIN" value="WeaveCRIPlugin"/>
 	<property name="FONTS" value="WeaveFonts"/>
 	<property name="CLIENT" value="WeaveClient"/>
 	<property name="ADMIN" value="WeaveAdmin"/>
@@ -182,7 +183,7 @@
 
 	<!-- This target will extract the swf files from the swc archives
 		and extract them to the WEAVE_DESTROOT -->
-	<target name="build" depends="client, admin, uispark, ui, data, core, api, services, exampleplugin">
+	<target name="build" depends="client, admin, uispark, ui, data, core, api, services, exampleplugin, criplugin">
 		<mkdir dir="${WEAVE_DESTROOT}"/>
 		<extract_swc swc="${basedir}/${API}/bin/${API}.swc" rsl="${API}.swf"/>
 		<extract_swc swc="${basedir}/${CORE}/bin/${CORE}.swc" rsl="${CORE}.swf"/>
@@ -194,6 +195,7 @@
 		<copy file="${basedir}/${ADMIN}/bin/AdminConsole.swf" tofile="${WEAVE_DESTROOT}/AdminConsole.swf"/>
 		<copy file="${basedir}/${SERVICES}/bin/${SERVICES}.war" tofile="${basedir}/${SERVICES}.war"/>
 		<copy file="${basedir}/${EXAMPLEPLUGIN}/bin/${EXAMPLEPLUGIN}.swc" tofile="${WEAVE_DESTROOT}/${EXAMPLEPLUGIN}.swc"/>
+		<copy file="${basedir}/${CRIPLUGIN}/bin/${CRIPLUGIN}.swc" tofile="${WEAVE_DESTROOT}/${CRIPLUGIN}.swc"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${FRAMEWORK_SWF}" tofile="${WEAVE_DESTROOT}/framework.swf"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${RPC_SWF}" tofile="${WEAVE_DESTROOT}/rpc.swf"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${SPARK_SWF}" tofile="${WEAVE_DESTROOT}/spark.swf"/>
@@ -231,6 +233,9 @@
 	<target name="exampleplugin" depends="ui">
 		<ant dir="${basedir}/${EXAMPLEPLUGIN}" target="build"/>
 	</target>
+	<target name="criplugin" depends="ui">
+			<ant dir="${basedir}/${CRIPLUGIN}" target="build"/>
+		</target>
 	<target name="services" depends="servletutils">
 		<ant dir="${basedir}/${SERVICES}" target="dist"/>
 	</target>

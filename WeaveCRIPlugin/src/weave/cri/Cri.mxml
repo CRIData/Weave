@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<ui:DraggablePanel xmlns="weave.cri.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
+				   implements="weave.api.ui.IVisTool" enterFrame="report()">
+	<mx:VBox>
+		<mx:HBox>
+			<mx:Label text="Hello World"/>
+			<ui:HelpComponent>This is the official CRI plugin test</ui:HelpComponent>
+			<mx:Button label="test1" click="redraw3()"/>
+			<mx:NumericStepper id="numIterations" minimum="100" maximum="10000" value="250" stepSize="50" toolTip="Number of circles to render"/>
+		</mx:HBox>
+	
+		<mx:Canvas width="100%" height="100%" id="canvas" mouseChildren="false"/>
+		
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import weave.api.WeaveAPI;
+			import weave.api.ui.IVisTool;
+			import mx.styles.StyleManager;
+			import mx.utils.GraphicsUtil;
+			import mx.core.*;
+			import flash.display.BitmapData;
+			import flash.display.BlendMode;
+			import flash.display.GradientType;
+			import flash.display.Shape;
+			import flash.filters.BlurFilter;
+			import flash.geom.Matrix;
+			import flash.geom.Point;
+			import flash.geom.Rectangle;
+			import mx.collections.ArrayCollection;
+			import mx.core.UIComponent;
+			import mx.events.CollectionEvent;
+			import mx.styles.CSSStyleDeclaration;
+			import mx.styles.StyleManager;
+			WeaveAPI.registerImplementation(IVisTool, Cri);
+			
+			private var bitmap:Bitmap = new Bitmap(new BitmapData(750, 500, true, 0x00000000));
+			
+			public static const RAINBOW:Array = [0,167772415,335544575,503316726,671088889,855638261,1023410423,
+			                                     1191182584,1358954741,1526726902,1711276277,1879048438,2046820599,
+			                                     2214592757,2382364918,2566914293,2734686453,2902458614,3070230773,
+			                                     3238002934,3422552309,3590324469,3758096630,3925868788,4093640949,
+			                                     4278190326,4278191862,4278193398,4278195190,4278196726,4278198518,
+			                                     4278200054,4278201590,4278203382,4278204918,4278206710,4278208246,
+			                                     4278209782,4278211574,4278213110,4278214902,4278216438,4278217974,
+			                                     4278219766,4278221302,4278223094,4278224630,4278226166,4278227958,
+			                                     4278229494,4278296822,4278232053,4278232821,4278233588,4278234356,
+			                                     4278235124,4278235891,4278236659,4278237426,4278238194,4278238962,
+			                                     4278239729,4278240497,4278241264,4278242032,4278242800,4278243567,
+			                                     4278244335,4278245102,4278245870,4278246638,4278247405,4278248173,
+			                                     4278248940,4278249708,4278250732,4278250722,4278250969,4278251215,
+			                                     4278251462,4278251452,4278251699,4278251945,4278252192,4278252183,
+			                                     4278252429,4278252676,4278252922,4278252913,4278253159,4278253406,
+			                                     4278253652,4278253643,4278253890,4278254136,4278254383,4278254373,
+			                                     4278254620,4278254866,4278255113,4278255360,4278910720,4279566080,
+			                                     4280221440,4280876800,4281597696,4282253056,4282908416,4283563776,
+			                                     4284219136,4284940032,4285595392,4286250752,4286906112,4287561472,
+			                                     4288282368,4288937728,4289593088,4290248448,4290903808,4291624704,
+			                                     4292280064,4292935424,4293590784,4294246144,4294967040,4294900736,
+			                                     4294834432,4294768384,4294702080,4294636032,4294569728,4294503680,
+			                                     4294437376,4294371328,4294305024,4294238976,4294172672,4294106624,
+			                                     4294040320,4293974272,4293907968,4293841920,4293775616,4293709568,
+			                                     4293643264,4293577216,4293510912,4293444864,4293378560,4293378048,
+			                                     4293377536,4293442560,4293507584,4293572608,4293637632,4293702656,
+			                                     4293767680,4293832704,4293897728,4293962752,4294027776,4294092800,
+			                                     4294158080,4294223104,4294288128,4294353152,4294418176,4294483200,
+			                                     4294548224,4294613248,4294678272,4294743296,4294808320,4294873344,
+			                                     4294938624,4294937088,4294935552,4294934016,4294932480,4294931200,
+			                                     4294929664,4294928128,4294926592,4294925312,4294923776,4294922240,
+			                                     4294920704,4294919424,4294917888,4294916352,4294914816,4294913536,
+			                                     4294912000,4294910464,4294908928,4294907648,4294906112,4294904576,
+			                                     4294903040,4294901760,4294903045,4294904330,4294905615,4294906900,
+			                                     4294908185,4294909470,4294910755,4294912040,4294913325,4294914867,
+			                                     4294916152,4294917437,4294918722,4294920007,4294921292,4294922577,
+			                                     4294923862,4294925147,4294926432,4294927974,4294929259,4294930544,
+			                                     4294931829,4294933114,4294934399,4294935684,4294936969,4294938254,
+			                                     4294939539,4294941081,4294942366,4294943651,4294944936,4294946221,
+			                                     4294947506,4294948791,4294950076,4294951361,4294952646,4294954188,
+			                                     4294955473,4294956758,4294958043,4294959328,4294960613,4294961898,
+			                                     4294963183,4294964468,4294965753,4294967295,4294967295,4294967295,
+			                                     4294967295,4294967295,4294967295];
+		        
+			
+			
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				canvas.rawChildren.addChild(bitmap);
+			}
+			
+			private var t:int = -1; // start time
+			private var wait:Boolean = false; // wait 1 frame?
+			
+			private function redraw3():void
+			{
+				wait = true;
+				t = getTimer();
+				
+				var shape:Shape = new Shape();
+				//shape.graphics.lineStyle(1, 0xFFFFFF, 1);
+				var m:Matrix = new Matrix();
+				bitmap.bitmapData.lock();
+				bitmap.bitmapData.fillRect(bitmap.bitmapData.rect, 0x00000000); // transparent fill
+				canvas.graphics.clear();
+				bitmap.visible = true;
+				for (var i:int = 0; i < numIterations.value; i++) {
+					
+					var x:Number = 750 * Math.random();
+					var y:Number = 500 * Math.random();
+					m.identity();
+					m.translate(x, y);
+					
+					var mtx:Matrix = new Matrix();
+					mtx.createGradientBox(25*2,25*2,0,-25,-25);
+					
+					// redraw shape each time
+					shape.graphics.clear();
+					shape.graphics.beginGradientFill(GradientType.RADIAL, [0x000000FF, 0x00000000], [1,1], [0,255], mtx);
+					shape.graphics.drawCircle(0, 0, 25);
+					shape.graphics.endFill();
+					bitmap.bitmapData.draw(shape, m, null, BlendMode.SCREEN);
+				}
+				bitmap.bitmapData.paletteMap(bitmap.bitmapData,bitmap.bitmapData.rect,new Point(0, 0),null,RAINBOW,RAINBOW,null);
+				
+				var blur:BlurFilter = new BlurFilter(); 
+				blur.blurX = 5; 
+				blur.blurY = 5; 
+				blur.quality = BitmapFilterQuality.HIGH; 
+				bitmap.filters = [blur];
+				bitmap.bitmapData.unlock();
+			}
+			
+			private var circleBitmapData:BitmapData = new BitmapData(11, 11, true, 0x00000000);
+			
+			
+			private function report():void
+			{
+				if (wait) // wait 1 frame?
+				{
+					wait = false;
+					return;
+				}
+				
+				if (t != -1)
+				{
+					trace(title = String(getTimer() - t) + ' ms');
+				}
+				t = -1;
+			}
+		]]>
+	</mx:Script>
+	<ui:ControlPanel>
+		<mx:VBox label="First tab">
+			<mx:Label text="Hello Help World"/>
+		</mx:VBox>
+		<mx:VBox label="Second tab">
+			<mx:Label text="A world of help, right here."/>
+		</mx:VBox>
+	</ui:ControlPanel>
+</ui:DraggablePanel>
