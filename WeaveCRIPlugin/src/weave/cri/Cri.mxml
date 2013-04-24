@@ -49,14 +49,17 @@
 			import mx.styles.CSSStyleDeclaration;
 			import mx.styles.StyleManager;
 			import mx.utils.GraphicsUtil;
+			import weave.api.data.IColumnStatistics;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.api.WeaveAPI;
 			import weave.compiler.StandardLib;
+			import weave.core.LinkableNumber;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.IStatisticsCache;
+			import weave.data.StatisticsCache;
+			import weave.primitives.Bounds2D;
 			import weave.utils.ColumnUtils;
 			import mx.styles.CSSStyleDeclaration;
 			import mx.styles.StyleManager;
@@ -67,6 +70,8 @@
 
 			public const xData:DynamicColumn = newLinkableChild(this, DynamicColumn);
 			public const yData:DynamicColumn = newLinkableChild(this, DynamicColumn);
+			public const cData:DynamicColumn = newLinkableChild(this, DynamicColumn);
+			
 
 
 			override protected function childrenCreated():void
@@ -81,30 +86,35 @@
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void {
 				super.updateDisplayList.apply(this, arguments);
 
-				var keys:Array = ColumnUtils.getAllKeys([xData,yData]);
-				var r:int = 2;
+				var keys:Array = ColumnUtils.getAllKeys([xData, yData, cData]);
+				var r:Number = 5;
+				var weight:Number = 1;
+				
+				var xMin:Number = WeaveAPI.StatisticsCache.getColumnStatistics(xData).getMin();
+				var xMax:Number = WeaveAPI.StatisticsCache.getColumnStatistics(xData).getMax();
+				
+				var yMin:Number = WeaveAPI.StatisticsCache.getColumnStatistics(yData).getMin();
+				var yMax:Number = WeaveAPI.StatisticsCache.getColumnStatistics(yData).getMax();
 
-				var y:Number = yData.getValueFromKey(key, Number);
-				var x:Number = xData.getValueFromKey(key, Number);
-
-				var yMax:Number = WeaveAPI.StatisticsCache.getMax(yData);
-				var yMin:Number = WeaveAPI.StatisticsCache.getMin(yData);
-
-				var xMax:Number = WeaveAPI.StatisticsCache.getMax(xData);
-				var xMin:Number = WeaveAPI.StatisticsCache.getMin(xData);
-
-
+				canvas.graphics.clear();
+				
+				var dataBounds:Bounds2D = new Bounds2D(xMin, yMin, xMax, yMax);
+				var screenBounds:Bounds2D = new Bounds2D(60, 60, unscaledWidth - 60, unscaledHeight - 60);
+				var point:Point = new Point();
+				
 				for each (var key:IQualifiedKey in keys){
 
 					var c:Number = 167772415;
-					var yNorm:Number = StandardLib.normalize(y, yMin, yMax);
-					var xNorm:Number = StandardLib.normalize(x, xMin, xMax);
-
-					var xScreen:Number = StandardLib.scale(xNorm, 0, 1, 0, unscaledWidth);
-					var yScreen:Number = StandardLib.scale(yNorm, 0, 1, 0, unscaledHeight);
-
+					var x:Number = xData.getValueFromKey(key, Number);
+					var y:Number = yData.getValueFromKey(key, Number);
+				
+					point.x = x;
+					point.y = y;
+					dataBounds.projectPointTo(point, screenBounds);
+					
+					canvas.graphics.lineStyle(weight, 0, 0.5);
 					canvas.graphics.beginFill(c, 0.5);
-					canvas.graphics.drawCircle(xScreen,yScreen,r);
+					canvas.graphics.drawCircle(point.x, point.y, r);
 					canvas.graphics.endFill();
 
 				}
