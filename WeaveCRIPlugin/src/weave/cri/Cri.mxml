@@ -21,7 +21,7 @@
 -->
 <ui:DraggablePanel xmlns="weave.cri.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
 		   implements="weave.api.ui.IVisTool">
-	<mx:VBox id="canvas">
+	<mx:VBox id="canvas" width="100%" height="100%">
 		<!-- <mx:Canvas width="100%" height="100%" id="canvas" /> -->
 	</mx:VBox>
 	<mx:Script>
@@ -103,7 +103,7 @@
 				
 				// databounds and screenbounds
 				var dataBounds:Bounds2D = new Bounds2D(xMin, yMin, xMax, yMax);
-				var screenBounds:Bounds2D = new Bounds2D(0, 0, unscaledWidth, unscaledHeight);
+				var screenBounds:Bounds2D = new Bounds2D(60, unscaledHeight - 60, unscaledWidth - 60, 60);
 				var point:Point = new Point();
 				var shape:Shape = new Shape();
 				var m:Matrix = new Matrix();
@@ -155,8 +155,8 @@
 				_bitmap.bitmapData.paletteMap(_bitmap.bitmapData,_bitmap.bitmapData.rect,new Point(0, 0),null,RAINBOW,RAINBOW,null);
 
 				var blur:BlurFilter = new BlurFilter();
-				blur.blurX = 3;
-				blur.blurY = 3;
+				blur.blurX = 8;
+				blur.blurY = 8;
 				blur.quality = BitmapFilterQuality.HIGH;
 				_bitmap.filters = [blur];
 				_bitmap.bitmapData.unlock();
