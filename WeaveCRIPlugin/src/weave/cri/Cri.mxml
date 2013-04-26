@@ -21,8 +21,8 @@
 -->
 <ui:DraggablePanel xmlns="weave.cri.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
 		   implements="weave.api.ui.IVisTool">
-	<mx:VBox>
-		<mx:Canvas width="100%" height="100%" id="canvas" />
+	<mx:VBox id="canvas">
+		<!-- <mx:Canvas width="100%" height="100%" id="canvas" /> -->
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
@@ -66,10 +66,7 @@
 			public const yData:DynamicColumn = newLinkableChild(this, DynamicColumn);
 			public const cData:DynamicColumn = newLinkableChild(this, DynamicColumn);
 			// Make  new bitmap
-			private var _bitmap:Bitmap = new Bitmap(new BitmapData(500, 500, true));
-			
-			trace("HELLOOOOOOOO");
-			
+			private var _bitmap:Bitmap = new Bitmap(new BitmapData(500, 500, true));			
 
 
 			override protected function childrenCreated():void
@@ -84,7 +81,7 @@
 			{
 				super.createChildren();
 				
-				// add the bitmap to the canvas
+				// add the bitmap
 				rawChildren.addChild(_bitmap);
 			}
 			
