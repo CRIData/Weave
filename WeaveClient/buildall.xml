@@ -255,6 +255,7 @@
 		<ant dir="${basedir}/${UISPARK}" target="clean" />
 		<ant dir="${basedir}/${UI}" target="clean" />
 		<ant dir="${basedir}/${SERVICES}" target="clean" />
+		<ant dir="${basedir}/${EXAMPLEPLUGIN}" target="clean" />
 		<ant dir="${basedir}/${SERVLETUTILS}" target="clean" />
 	</target>
 
@@ -284,7 +285,7 @@
 			swf="weave"
 			history="false"
 			version-major="10"
-			version-minor="0"
+			version-minor="2"
 			version-revision="0"
 			height="100%"
 			width="100%"

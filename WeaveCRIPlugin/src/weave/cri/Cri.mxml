@@ -22,18 +22,11 @@
 <ui:DraggablePanel xmlns="weave.cri.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
 		   implements="weave.api.ui.IVisTool">
 	<mx:VBox>
-		<!-- <mx:HBox>
-			<mx:Label text="Hello World"/>
-			<ui:HelpComponent>This is the official CRI plugin test</ui:HelpComponent>
-			<mx:Button label="test1" click="redraw3()"/>
-			<mx:NumericStepper id="numIterations" minimum="100" maximum="10000" value="250" stepSize="50" toolTip="Number of circles to render"/>
-		</mx:HBox> -->
-
-		<mx:Canvas width="100%" height="100%" id="canvas" mouseChildren="false"/>
-
+		<mx:Canvas width="100%" height="100%" id="canvas" />
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
+			import flash.display.Bitmap;
 			import flash.display.BitmapData;
 			import flash.display.BlendMode;
 			import flash.display.GradientType;
@@ -60,17 +53,22 @@
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.StatisticsCache;
 			import weave.primitives.Bounds2D;
+			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
 			import mx.styles.CSSStyleDeclaration;
 			import mx.styles.StyleManager;
+			import weave.utils.PlotterUtils;
+			
 			WeaveAPI.registerImplementation(IVisTool, Cri);
 
-			//private var bitmap:Bitmap = new Bitmap(new BitmapData(750, 500, true, 0x00000000));
-
-
+			// This calls a sessioned variable that can be changed at runtime
 			public const xData:DynamicColumn = newLinkableChild(this, DynamicColumn);
 			public const yData:DynamicColumn = newLinkableChild(this, DynamicColumn);
 			public const cData:DynamicColumn = newLinkableChild(this, DynamicColumn);
+			// Make  new bitmap
+			private var _bitmap:Bitmap = new Bitmap(new BitmapData(500, 500, true));
+			
+			trace("HELLOOOOOOOO");
 			
 
 
@@ -80,89 +78,92 @@
 
 				getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
 
-				//canvas.rawChildren.addChild(bitmap);
 			}
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				// add the bitmap to the canvas
+				rawChildren.addChild(_bitmap);
+			}
+			
 
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void {
 				super.updateDisplayList.apply(this, arguments);
-
-				var keys:Array = ColumnUtils.getAllKeys([xData, yData, cData]);
-				var r:Number = 5;
-				var weight:Number = 1;
 				
+				// Get n array of the linkable children
+				var keys:Array = ColumnUtils.getAllKeys([xData, yData, cData]);
+				
+				// Set the radius
+				var r:Number = 5;
+				
+				// Get Min and Max of the key columns
 				var xMin:Number = WeaveAPI.StatisticsCache.getColumnStatistics(xData).getMin();
 				var xMax:Number = WeaveAPI.StatisticsCache.getColumnStatistics(xData).getMax();
-				
 				var yMin:Number = WeaveAPI.StatisticsCache.getColumnStatistics(yData).getMin();
 				var yMax:Number = WeaveAPI.StatisticsCache.getColumnStatistics(yData).getMax();
-
-				canvas.graphics.clear();
 				
+				// databounds and screenbounds
 				var dataBounds:Bounds2D = new Bounds2D(xMin, yMin, xMax, yMax);
-				var screenBounds:Bounds2D = new Bounds2D(60, 60, unscaledWidth - 60, unscaledHeight - 60);
+				var screenBounds:Bounds2D = new Bounds2D(0, 0, unscaledWidth, unscaledHeight);
 				var point:Point = new Point();
+				var shape:Shape = new Shape();
+				var m:Matrix = new Matrix();
 				
-				for each (var key:IQualifiedKey in keys){
+				// resize the bitmap to the canvas size
+				PlotterUtils.setBitmapDataSize(_bitmap, canvas.width, canvas.height);
+				
+				// clear the bitmap data
+				_bitmap.bitmapData.fillRect(_bitmap.bitmapData.rect, 0x00000000);
+				
+				for each (var key:IQualifiedKey in keys) {
+				
 
 					var c:Number = 167772415;
 					var x:Number = xData.getValueFromKey(key, Number);
 					var y:Number = yData.getValueFromKey(key, Number);
-				
+					
+					// Set the position of the circle
 					point.x = x;
 					point.y = y;
-					dataBounds.projectPointTo(point, screenBounds);
 					
-					canvas.graphics.lineStyle(weight, 0, 0.5);
-					canvas.graphics.beginFill(c, 0.5);
-					canvas.graphics.drawCircle(point.x, point.y, r);
-					canvas.graphics.endFill();
-
-				}
-			}
-
-
-			private var t:int = -1; // start time
-			private var wait:Boolean = false; // wait 1 frame?
-
-			/* private function redraw3():void
-			{
-				wait = true;
-				t = getTimer();
-
-
-				var shape:Shape = new Shape();
-				//shape.graphics.lineStyle(1, 0xFFFFFF, 1);
-				var m:Matrix = new Matrix();
-				bitmap.bitmapData.lock();
-				bitmap.bitmapData.fillRect(bitmap.bitmapData.rect, 0x00000000); // transparent fill
-				canvas.graphics.clear();
-				bitmap.visible = true;
-				for (var i:int = 0; i < numIterations.value; i++) {
-
-					var x:Number = 750 * Math.random();
-					var y:Number = 500 * Math.random();
-					m.identity();
-					m.translate(x, y);
-
 					var mtx:Matrix = new Matrix();
 					mtx.createGradientBox(15*2,15*2,0,-15,-15);
-
-					// redraw shape each time
+					
+					
+					// Change the data bounds to the screen bounds
+					dataBounds.projectPointTo(point, screenBounds);
+					
+					m.identity();
+					m.translate(point.x, point.y);
+					
 					shape.graphics.clear();
 					shape.graphics.beginGradientFill(GradientType.RADIAL, [0x000000FF, 0x00000000], [1,1], [0,255], mtx);
 					shape.graphics.drawCircle(0, 0, 15);
 					shape.graphics.endFill();
-					bitmap.bitmapData.draw(shape, m, null, BlendMode.SCREEN);
+					_bitmap.bitmapData.draw(shape, m, null, BlendMode.SCREEN);
+					
+					
+					// This is where we draw
+					// TODO add the bitmap graphics stuff from redraw3() instead.
+					//canvas.graphics.lineStyle(0, 0, 0);
+					//canvas.graphics.beginFill(c, 0.5);
+					//canvas.graphics.drawCircle(point.x, point.y, r);
+					//canvas.graphics.endFill();
+
 				}
-				bitmap.bitmapData.paletteMap(bitmap.bitmapData,bitmap.bitmapData.rect,new Point(0, 0),null,RAINBOW,RAINBOW,null);
+				
+				
+				_bitmap.bitmapData.paletteMap(_bitmap.bitmapData,_bitmap.bitmapData.rect,new Point(0, 0),null,RAINBOW,RAINBOW,null);
 
 				var blur:BlurFilter = new BlurFilter();
 				blur.blurX = 3;
 				blur.blurY = 3;
 				blur.quality = BitmapFilterQuality.HIGH;
-				bitmap.filters = [blur];
-				bitmap.bitmapData.unlock();
-			} */
+				_bitmap.filters = [blur];
+				_bitmap.bitmapData.unlock();
+			}
 
 			public static const RAINBOW:Array = [0,167772415,335544575,503316726,671088889,855638261,1023410423,
 				1191182584,1358954741,1526726902,1711276277,1879048438,2046820599,

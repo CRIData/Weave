@@ -24,9 +24,9 @@
 	<property name="FRAMEWORK_SWF" value="framework_4.5.1.21489.swf"/>
 	<property name="RPC_SWF" value="rpc_4.5.1.21328.swf"/>
 	<property name="SPARK_SWF" value="spark_4.5.1.21489.swf"/>
-        <property name="MX_SWF" value="mx_4.5.1.21489.swf"/>
-        <property name="TEXTLAYOUT_SWF" value="textLayout_2.0.0.232.swf"/>
-    <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
+	<property name="MX_SWF" value="mx_4.5.1.21489.swf"/>
+	<property name="TEXTLAYOUT_SWF" value="textLayout_2.0.0.232.swf"/>
+	<taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
 
 	<!-- These are the projects -->
@@ -35,23 +35,25 @@
 	<property name="DATA" value="WeaveData"/>
 	<property name="UISPARK" value="WeaveUISpark"/>
 	<property name="UI" value="WeaveUI"/>
-        <property name="FONTS" value="WeaveFonts"/>
+	<property name="EXAMPLEPLUGIN" value="WeaveExamplePlugin"/>
+	<property name="CRIPLUGIN" value="WeaveCRIPlugin"/>
+	<property name="FONTS" value="WeaveFonts"/>
 	<property name="CLIENT" value="WeaveClient"/>
 	<property name="ADMIN" value="WeaveAdmin"/>
 	<property name="SERVICES" value="WeaveServices"/>
-        <property name="SERVLETUTILS" value="WeaveServletUtils"/>
+	<property name="SERVLETUTILS" value="WeaveServletUtils"/>
 
 	<target name="dist" depends="build">
 		<zip destfile="weave.zip">
-			<zipfileset dir="${WEAVE_DESTROOT}" prefix="ROOT" />
-			<zipfileset file="${basedir}/WeaveServices.war" />
+			<zipfileset dir="${WEAVE_DESTROOT}" prefix="ROOT"/>
+			<zipfileset file="${basedir}/WeaveServices.war"/>
 		</zip>
 	</target>
 
 	<target name="deploy_war">
 		<zip destfile="weave.zip">
-			<zipfileset dir="${WEAVE_DESTROOT}" prefix="ROOT" />
-			<zipfileset file="${basedir}/WeaveServices.war" />
+			<zipfileset dir="${WEAVE_DESTROOT}" prefix="ROOT"/>
+			<zipfileset file="${basedir}/WeaveServices.war"/>
 		</zip>
 	</target>
 
@@ -59,17 +61,18 @@
 		<!-- This target will install the files to WEAVE_DOCROOT. -->
 		<copy todir="${WEAVE_DOCROOT}">
 			<fileset dir="${WEAVE_DESTROOT}">
-				<include name="*.swf" />
-				<include name="*.html" />
-				<include name="*.js" />
-				<include name="*.css" />
+				<include name="*.swf"/>
+				<include name="*.html"/>
+				<include name="*.js"/>
+				<include name="*.css"/>
+				<include name="*.swc"/>
 			</fileset>
 		</copy>
-                <copy todir="${WEAVE_DOCROOT}/../">
-                    <fileset dir="${basedir}">
-                        <include name="WeaveServices.war"/>
-                    </fileset>
-                </copy> 
+		<copy todir="${WEAVE_DOCROOT}/../">
+			<fileset dir="${basedir}">
+				<include name="WeaveServices.war"/>
+			</fileset>
+		</copy>
 	</target>
 
 	<target name="deploy_local" depends="build">
@@ -89,6 +92,7 @@
 				<include name="*.html" />
 				<include name="*.js" />
 				<include name="*.css" />
+				<include name="*.swc"/>
 			</fileset>
 		</copy>
 		<echo message="Deploying WAR file to local server" />
@@ -179,35 +183,45 @@
 
 	<!-- This target will extract the swf files from the swc archives
 		and extract them to the WEAVE_DESTROOT -->
-	<target name="build" depends="client, admin, uispark, ui, data, core, api, services">
+<<<<<<< HEAD
+	<target name="build" depends="client, admin, uispark, ui, data, core, api, services, exampleplugin, criplugin">
+=======
+	<target name="build" depends="client, admin, uispark, ui, data, core, api, services, exampleplugin">
+>>>>>>> refs/remotes/upstream/master
 		<mkdir dir="${WEAVE_DESTROOT}"/>
 		<extract_swc swc="${basedir}/${API}/bin/${API}.swc" rsl="${API}.swf"/>
 		<extract_swc swc="${basedir}/${CORE}/bin/${CORE}.swc" rsl="${CORE}.swf"/>
 		<extract_swc swc="${basedir}/${DATA}/bin/${DATA}.swc" rsl="${DATA}.swf"/>
 		<extract_swc swc="${basedir}/${UISPARK}/bin/${UISPARK}.swc" rsl="${UISPARK}.swf"/>
 		<extract_swc swc="${basedir}/${UI}/bin/${UI}.swc" rsl="${UI}.swf"/>
-                <copy file="${basedir}/${CLIENT}/swf/${FONTS}.swf" tofile="${WEAVE_DESTROOT}/${FONTS}.swf"/>
+		<copy file="${basedir}/${CLIENT}/swf/${FONTS}.swf" tofile="${WEAVE_DESTROOT}/${FONTS}.swf"/>
 		<copy file="${basedir}/${CLIENT}/bin/weave.swf" tofile="${WEAVE_DESTROOT}/weave.swf"/>
 		<copy file="${basedir}/${ADMIN}/bin/AdminConsole.swf" tofile="${WEAVE_DESTROOT}/AdminConsole.swf"/>
 		<copy file="${basedir}/${SERVICES}/bin/${SERVICES}.war" tofile="${basedir}/${SERVICES}.war"/>
+<<<<<<< HEAD
+		<copy file="${basedir}/${EXAMPLEPLUGIN}/bin/${EXAMPLEPLUGIN}.swc" tofile="${WEAVE_DESTROOT}/${EXAMPLEPLUGIN}.swc"/>
+		<copy file="${basedir}/${CRIPLUGIN}/bin/${CRIPLUGIN}.swc" tofile="${WEAVE_DESTROOT}/${CRIPLUGIN}.swc"/>
+=======
+                <copy failonerror="false" file="${basedir}/${EXAMPLEPLUGIN}/bin/${EXAMPLEPLUGIN}.swc" tofile="${WEAVE_DESTROOT}/${EXAMPLEPLUGIN}.swc"/>
+>>>>>>> refs/remotes/upstream/master
 		<copy file="${FLEX_HOME}/frameworks/rsls/${FRAMEWORK_SWF}" tofile="${WEAVE_DESTROOT}/framework.swf"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${RPC_SWF}" tofile="${WEAVE_DESTROOT}/rpc.swf"/>
-                <copy file="${FLEX_HOME}/frameworks/rsls/${SPARK_SWF}" tofile="${WEAVE_DESTROOT}/spark.swf"/>
-                <copy file="${FLEX_HOME}/frameworks/rsls/${MX_SWF}" tofile="${WEAVE_DESTROOT}/mx.swf"/>
-                <copy file="${FLEX_HOME}/frameworks/rsls/${TEXTLAYOUT_SWF}" tofile="${WEAVE_DESTROOT}/textLayout.swf"/>
+		<copy file="${FLEX_HOME}/frameworks/rsls/${SPARK_SWF}" tofile="${WEAVE_DESTROOT}/spark.swf"/>
+		<copy file="${FLEX_HOME}/frameworks/rsls/${MX_SWF}" tofile="${WEAVE_DESTROOT}/mx.swf"/>
+		<copy file="${FLEX_HOME}/frameworks/rsls/${TEXTLAYOUT_SWF}" tofile="${WEAVE_DESTROOT}/textLayout.swf"/>
 		<antcall target="admin_wrapper"/>
 		<antcall target="client_wrapper"/>
 	</target>
 
 	<!-- These targets will build each project -->
 	<target name="api">
-		<buildproject targetproject="${API}" targetfileext="swc" />
+		<buildproject targetproject="${API}" targetfileext="swc"/>
 	</target>
 	<target name="core" depends="api">
-		<buildproject targetproject="${CORE}" targetfileext="swc" />
+		<buildproject targetproject="${CORE}" targetfileext="swc"/>
 	</target>
 	<target name="data" depends="core">
-		<buildproject targetproject="${DATA}" targetfileext="swc" />
+		<buildproject targetproject="${DATA}" targetfileext="swc"/>
 	</target>
 	<target name="uispark" depends="data">
 		<buildproject targetproject="${UISPARK}" targetfileext="swc"/>
@@ -216,35 +230,30 @@
 		<buildproject targetproject="${UI}" targetfileext="swc"/>
 	</target>
 	<target name="client" depends="ui">
-		<buildproject targetproject="${CLIENT}" targetfileext="swf" />
+		<buildproject targetproject="${CLIENT}" targetfileext="swf"/>
 	</target>
 	<target name="admin" depends="ui">
-		<buildproject targetproject="${ADMIN}" targetfileext="swf" />
+		<buildproject targetproject="${ADMIN}" targetfileext="swf"/>
 	</target>
-<<<<<<< HEAD
-	<target name="services">
-		<ant dir="${basedir}/WeaveServices" target="dist" />
-=======
 	<target name="servletutils">
 		<ant dir="${basedir}/${SERVLETUTILS}" target="build"/>
 	</target>
+	<target name="exampleplugin" depends="ui">
+		<ant dir="${basedir}/${EXAMPLEPLUGIN}" target="build"/>
+	</target>
+	<target name="criplugin" depends="ui">
+			<ant dir="${basedir}/${CRIPLUGIN}" target="build"/>
+		</target>
 	<target name="services" depends="servletutils">
 		<ant dir="${basedir}/${SERVICES}" target="dist"/>
->>>>>>> refs/remotes/upstream/master
 	</target>
-
 
 	<!-- This target calls the clean targets of each project's build file -->
 	<target name="clean">
-		<echo message="Cleaning all projects..." />
+		<echo message="Cleaning all projects..."/>
 		<delete quiet="false" includeemptydirs="true" dir="${WEAVE_DESTROOT}">
-<<<<<<< HEAD
-			<fileset file="${basedir}/WeaveServices.war" />
-			<fileset file="${basedir}/weave.zip" />
-=======
-		    <fileset file="${basedir}/${SERVICES}.war"/>
-		    <fileset file="${basedir}/weave.zip"/>
->>>>>>> refs/remotes/upstream/master
+			<fileset file="${basedir}/${SERVICES}.war"/>
+			<fileset file="${basedir}/weave.zip"/>
 		</delete>
 		<ant dir="${basedir}/${CLIENT}" target="clean" />
 		<ant dir="${basedir}/${ADMIN}" target="clean" />
@@ -254,6 +263,7 @@
 		<ant dir="${basedir}/${UISPARK}" target="clean" />
 		<ant dir="${basedir}/${UI}" target="clean" />
 		<ant dir="${basedir}/${SERVICES}" target="clean" />
+		<ant dir="${basedir}/${EXAMPLEPLUGIN}" target="clean" />
 		<ant dir="${basedir}/${SERVLETUTILS}" target="clean" />
 	</target>
 
