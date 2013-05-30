@@ -46,7 +46,7 @@ package weave.api.core
 		/**
 		 * This function will get the qualified class name of an object appearing in the session state.
 		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
-		 * @return The qualified class name of the object referred to by objectPath.
+		 * @return The qualified class name of the object referred to by objectPath, or null if there is no object.
 		 */
 		function getObjectType(objectPath:Array):String;
 
@@ -123,7 +123,7 @@ package weave.api.core
 		 * @param scopeObjectPathOrExpressionName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression, which will be used as the <code>this</code> pointer when evaluating the expression.
 		 * @param expression The expression to evaluate.
 		 * @param variables A hash map of variable names to values.
-		 * @param staticLibraries An array of fully qualified class names which contain static methods to include the expression.
+		 * @param staticLibraries An array of fully qualified class names which contain static methods to include for future expressions, including this one.
 		 * @param assignExpressionName An optional name to associate with this expression.  If specified, the expression will not be immediately evaluated.
 		 * @return The value of the evaluated expression, or undefined if assignExpressionName was specified.
 		 * @see weave.compiler.Compiler

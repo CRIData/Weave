@@ -60,6 +60,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
@@ -73,7 +74,7 @@
 			import weave.ui.BusyIndicator;
 			import weave.ui.IndentGroup;
 			
-			private const indentGroup:IndentGroup = new IndentGroup();
+			[Bindable] private var indentGroup:IndentGroup = new IndentGroup();
 			
 			private var busyIndicator:BusyIndicator = new BusyIndicator();
 			
@@ -105,12 +106,16 @@
 					url.text = _csvDataSource.url.value;
 					keyColumnName.text = _csvDataSource.keyColName.value;
 					keyTypeSelector.addKeyTypeToMenu(_csvDataSource.keyType.value);
-					var rows:Array = _csvDataSource.csvData.getSessionState() as Array;
-					csvTextArea.text = WeaveAPI.CSVParser.createCSV(rows);
-					csvParser.parseCSV(csvTextArea.text);
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
-					showGridButton.enabled = true;
+						
+					handleURLTextChange();
+					if (!url.text)
+					{
+						var rows:Array = _csvDataSource.csvData.getSessionState() as Array;
+						showGridButton.enabled = rows != null;
+						setCSVRows(rows);
+					}
 				}
 			}
 			
@@ -153,7 +158,11 @@
 			// called when parser finishes
 			private function handleCSVParser():void
 			{
-				csvRows = csvParser.parseResult;
+				setCSVRows(csvParser.parseResult);
+			}
+			private function setCSVRows(rows:Array):void
+			{
+				csvRows = rows;
 				headerArray = csvRows[0];
 				//this is showGridButton is disabled only if a file has been loaded as the source
 				showGridButton.enabled = true;
@@ -200,25 +209,29 @@
 				grid.loadData(csvRecords, headerArray);
 				
 				PopUpManager.bringToFront(grid);
+				
+				function handleSaveButtonClick(event:MouseEvent):void
+				{
+					// fix bug that occurs after datagrid validateNow(): it puts in mx_internal_uid values
+					for each (var item:Object in csvRecords)
+						delete item['mx_internal_uid'];
+					
+					// get new column order
+					headerArray = grid.tableEditor.columns.map(function(col:DataGridColumn, ..._):String { return col.dataField; });
+					csvRows = WeaveAPI.CSVParser.convertRecordsToRows(csvRecords, headerArray);
+					
+					//if the data entered through the text area, clear the text area
+					if (csvTextArea.text != "")
+						csvTextArea.text = '';
+				}
 			}
 			
-			private function handleSaveButtonClick(event:MouseEvent):void
-			{
-				// fix bug that occurs after datagrid validateNow(): it puts in mx_internal_uid values
-				for each (var item:Object in csvRecords)
-					delete item['mx_internal_uid'];
-				
-				csvRows = WeaveAPI.CSVParser.convertRecordsToRows(csvRecords);
-				
-				//if the data entered through the text area, clear the text area
-				if (csvTextArea.text != "")
-					csvTextArea.text = '';
-			}
 			
 			private function handleURLTextChange():void
 			{
-				uploadMessage.visible = false;
-				showGridButton.enabled = false;
+				var hasURL:Boolean = url.text ? true : false;
+				uploadMessage.visible = !hasURL;
+				showGridButton.enabled = !hasURL;
 				csvRows = null;
 				csvTextArea.text = '';
 			}
