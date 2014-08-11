@@ -1,7 +1,10 @@
 <project name="WeaveServletUtils" basedir=".">
+
+	<property file="${basedir}\build.properties" />
+
     <path id="classpath">
         <fileset dir="lib" includes="**/*.jar"/>
-        <fileset dir="/tomcat/7/lib/" includes="servlet-api.jar"/>
+        <fileset dir="${ext.lib}" includes="servlet-api.jar"/>
     </path>
     <target name="clean">
         <delete dir="bin"/>
