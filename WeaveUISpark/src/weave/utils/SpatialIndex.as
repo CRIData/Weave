@@ -355,7 +355,9 @@ package weave.utils
 			// if there are 0 keys
 			if (keys.length == 0)
 				return keys;
-			
+
+			criDebug("[START] getKeysGeometryOverlap - queryBounds: " + queryBounds);
+
 			// define the bounds as a polygon
 			setTempBounds(queryBounds);
 			
@@ -464,7 +466,8 @@ package weave.utils
 					}
 				} // end for each (var geom...
 			} // end for each (var key...
-			
+			criDebug("[END] getKeysGeometryOverlap");
+
 			return result; 
 		} // end function
 		
@@ -744,23 +747,30 @@ package weave.utils
 		 */		
 		public function getKeysGeometryOverlapGeometry(geometry:ISimpleGeometry, minImportance:Number = 0, filterBoundingBoxesByImportance:Boolean = false):Array
 		{
+			criDebug("[START] getKeysGeometryOverlapGeometry");
 			// first filter by bounds
 			var point:Object;
 			var queryGeomVertices:Array = geometry.getVertices();
+			criDebug("(geometry as SimpleGeometry).bounds: " + (geometry as SimpleGeometry).bounds);
 			var keys:Array = getKeysBoundingBoxOverlap((geometry as SimpleGeometry).bounds, filterBoundingBoxesByImportance ? minImportance : 0);
 			
 			var geomEnabled:Boolean = _keyToGeometriesMap && Weave.properties.enableGeometryProbing.value;
 			
 			var result:Array = [];
-			
+
+			criDebug("keys.length: " + keys.length);
+
 			// for each key, look up its geometries 
 			keyLoop: for (var i:int = keys.length; i--;)
 			{
+
+
 				var key:IQualifiedKey = keys[i];
 				
 				var geoms:Array = geomEnabled ? _keyToGeometriesMap[key] : null;
 				if (!geoms || geoms.length == 0)
 				{
+					criDebug("geoms");
 					var keyBounds:Array = _keyToBoundsMap[key];
 					for (var j:int = 0; j < keyBounds.length; j++)
 					{
@@ -779,10 +789,14 @@ package weave.utils
 				// for each geometry, get vertices, check type, and do proper geometric overlap
 				for (var iGeom:int = 0; iGeom < geoms.length; ++iGeom)
 				{
+					criDebug("for loop each geoms");
+
 					var geom:Object = geoms[iGeom];
 					
 					if (geom is GeneralizedGeometry)
 					{
+						criDebug("GeneralizedGeometry");
+
 						var genGeom:GeneralizedGeometry = geom as GeneralizedGeometry;
 						var genGeomIsPoly:Boolean = genGeom.isPolygon();
 						var genGeomIsLine:Boolean = genGeom.isLine();
@@ -839,6 +853,8 @@ package weave.utils
 					}
 					else // NOT a generalized geometry
 					{
+						criDebug("NOT a generalized geometry");
+					
 						var simpleGeom:ISimpleGeometry = geom as ISimpleGeometry;
 						var simpleGeomIsPoly:Boolean = simpleGeom.isPolygon();
 						var simpleGeomIsLine:Boolean = simpleGeom.isLine();
@@ -874,8 +890,24 @@ package weave.utils
 					}
 				} // end for each (var geom...
 			} // end for each (var key...
-			
+			criDebug("[END] getKeysGeometryOverlapGeometry");
+
 			return result; 
 		}
+		
+		private static const debugPrefix:String = "DEBUG - TJM - " + "SpatialIndex.as" + " - ";
+		public static var debugOn:Boolean = false; 				// turns trace messages on/off
+		public static var debugOffMsgDisplayed:Boolean = false; // this should ALWAYS be set to false as it is used to display a single message
+		public static function criDebug(s:String):void {
+			if(debugOn) {
+				trace(debugPrefix + s);				
+			} else {
+				if(!debugOffMsgDisplayed) {
+					trace(debugPrefix + "Debug Messages turned off for this class");
+					debugOffMsgDisplayed = true;
+				} 
+			}
+		}		
+
 	}
 }

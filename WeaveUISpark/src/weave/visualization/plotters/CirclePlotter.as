@@ -42,6 +42,7 @@ package weave.visualization.plotters
 	{
 		public function CirclePlotter()
 		{
+			criDebug("calling CirclePlotter constructor");
 		}
 		
 		/**
@@ -106,18 +107,41 @@ package weave.visualization.plotters
 			return value >= 3; 
 		}
 
-		
+		/**
+		 * This function draws the background graphics for this plotter, if applicable.
+		 * An example background would be the origin lines of an axis.
+		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
+		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
+		 * @param destination The sprite to draw the graphics onto.
+		 */
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
+			criDebug("start CirclePlotter drawBackground");
 			_tempDataBounds = dataBounds;
 			_tempScreenBounds = screenBounds;
 			
+			criDebug("dataX: " + dataX.value);
+			criDebug("dataY: " + dataY.value);
+			criDebug("radius size: " + radius.value);
+			if(radius.value == 1) {
+				radius.value = 100;
+			}
+
+			criDebug("after updated radius size: " + radius.value);				
+			criDebug("after lineColor: " + lineColor.value);				
+			lineColor.value = 3368652;				
+			criDebug("after updated lineColor: " + lineColor.value);				
+			
 			if(isNaN(dataX.value) || isNaN(dataY.value) || isNaN(radius.value))
 				return;
-			
+
+			criDebug("beyond the first check of x,y,radius");
+
 			var g:Graphics = tempShape.graphics;
 			g.clear();
-			
+
+			criDebug("Circle Plotter graphics");
+
 			//project center point 
 			var centerPoint:Point = new Point(dataX.value, dataY.value);
 			_tempDataBounds.projectPointTo(centerPoint, _tempScreenBounds);
@@ -129,12 +153,24 @@ package weave.visualization.plotters
 			//calculate projected distance
 			var distance:Number = Point.distance(centerPoint, circumferencePoint);
 			
+			criDebug("[start] draw circle");
+			criDebug("lineColor.value: " + lineColor.value);
+			criDebug("lineAlpha.value: " + lineAlpha.value);
+			criDebug("thickness.value: " + thickness.value);
+			criDebug("fillColor.value: " + fillColor.value);
+			criDebug("fillAlpha.value: " + fillAlpha.value);
+			criDebug("centerPoint.x: " + centerPoint.x);
+			criDebug("centerPoint.y: " + centerPoint.y);
+			criDebug("distance: " + distance);
+
 			//draw circle
 			g.lineStyle(thickness.value, lineColor.value, lineAlpha.value);
 			g.beginFill(fillColor.value, fillAlpha.value);
 			g.drawCircle(centerPoint.x, centerPoint.y, distance);
+			criDebug("[end] draw circle");
 			
 			destination.draw(tempShape);
+			criDebug("end CirclePlotter drawBackground");
 		}
 
 		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
@@ -189,5 +225,21 @@ package weave.visualization.plotters
 		private var _tempDataBounds:IBounds2D;
 		private var _tempScreenBounds:IBounds2D;
 		private const _tempArray:Array = [];
+		
+		private const debugPrefix:String = "DEBUG - TJM - " + "CirclePlotter.as" + " - ";
+		public static var debugOn:Boolean = false; 				// turns trace messages on/off
+		public static var debugOffMsgDisplayed:Boolean = false; // this should ALWAYS be set to false as it is used to display a single message
+		public function criDebug(s:String):void {
+			if(debugOn) {
+				trace(debugPrefix + s);				
+			} else {
+				if(!debugOffMsgDisplayed) {
+					trace(debugPrefix + "Debug Messages turned off for this class");
+					trace("*** WEAVE DEVELOPER NOTE *** - If recompiling a class for debugging purposes, you MUST clear your browser cache to see the results.")
+				} else {
+					debugOffMsgDisplayed = true;
+				}
+			}
+		}	
 	}
 }

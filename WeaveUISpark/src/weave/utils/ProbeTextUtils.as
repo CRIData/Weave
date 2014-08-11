@@ -20,6 +20,7 @@
 package weave.utils
 {
 	import flash.display.Stage;
+	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.IToolTip;
 	import mx.core.UIComponent;
@@ -37,6 +38,9 @@ package weave.utils
 	import weave.core.LinkableHashMap;
 	import weave.primitives.Bounds2D;
 	
+	import weave.visualization.layers.InteractiveVisualization;
+	//import weave.visualization.layers.Visualization;
+
 	/**
 	 * A static class containing functions to manage a list of probed attribute columns
 	 * 
@@ -65,6 +69,33 @@ package weave.utils
 		 */
 		public static const probeLineFormatter:LinkableFunction = new LinkableFunction(DEFAULT_LINE_FORMAT, true, false, ['column', 'key', 'string', 'title']);
 		
+		public static function criGetProbeKeyByName(keyName:String):IQualifiedKey {
+			criDebug("[START] getProbeKeyByName function");
+			var key:IQualifiedKey;
+			var keys:Array = null;
+			
+			criDebug("searching for: " + keyName);
+			//var iv:InteractiveVisualization= new InteractiveVisualization();
+			////var iv:Visualization = getVisualization(parent);
+			//key = iv.criGetKey(keyName);
+
+			
+			
+			//getProbeText();
+			
+			
+			criDebug("key: " + key);
+
+			criDebug("[END] getProbeKeyByName function");
+			return key;
+		}
+		
+		public static function criGetAllProbeKeys(criAllProbedKeys:Array):Array {
+			criDebug("[START] criGetAllProbeKeys");
+			criDebug("[END] criGetAllProbeKeys");						
+			return criAllProbedKeys;
+		}
+		
 		/**
 		 * getProbeText
 		 * @param keySet The key set you are interested in.
@@ -73,7 +104,7 @@ package weave.utils
 		 * @return A string to be displayed on a tooltip while probing 
 		 */
 		public static function getProbeText(keys:Array, additionalColumns:Array = null):String
-		{
+		{						
 			var result:String = '';
 			var headers:Array = probeHeaderColumns.getObjects(IAttributeColumn);
 			// include headers in list of columns so that those appearing in the headers won't be duplicated.
@@ -85,70 +116,122 @@ package weave.utils
 			var key:IQualifiedKey;
 			var recordCount:int = 0;
 			var maxRecordsShown:Number = Weave.properties.maxTooltipRecordsShown.value;
+
+			// TJM - 04/02/14 - trying to get this to return the keys instead of the result so I know what the keys look like that are being passed
+			//var myKeys:String = 'BLANK';
+			//for (var z:int = 0; z < keys.length; z++) {
+			//	myKeys += ',';
+			//	myKeys += keys[z] as IQualifiedKey;
+			//}
+			
+			//criDebug("myKeys: " + myKeys);
+			//criDebug("keys: " + keys);
+			//criDebug("keysLength: " + keys.length);
+			//criDebug("columns: " + columns);
+
 			for (var iKey:int = 0; iKey < keys.length && iKey < maxRecordsShown; iKey++)
 			{
-				key = keys[iKey] as IQualifiedKey;
 
-				var record:String = '';
-				for (var iHeader:int = 0; iHeader < headers.length; iHeader++)
-				{
-					var header:IAttributeColumn = headers[iHeader] as IAttributeColumn;
-					var headerValue:String = StandardLib.asString(header.getValueFromKey(key, String));
-					if (headerValue == '')
-						continue;
-					if (record)
-						record += ', ';
-					record += headerValue;
-				}
-				
-				if (record)
-					record += '\n';
-				var lookup:Object = new Object() ;
-				for (var iColumn:int = 0; iColumn < columns.length; iColumn++)
-				{
-					var column:IAttributeColumn = columns[iColumn] as IAttributeColumn;
-					var value:String = String(column.getValueFromKey(key, String));
-					if (!value || value == 'NaN')
-						continue;
-					var title:String = ColumnUtils.getTitle(column);
-					try
+				key = keys[iKey] as IQualifiedKey;
+				if(key != null) {
+					criDebug("[START] getProbeText");
+
+					criDebug("key[" +iKey +"]: " + key);
+					criDebug("key.localName: " + key.localName);
+					criDebug("key.keyType: " + key.keyType);
+
+					var record:String = '';
+					for (var iHeader:int = 0; iHeader < headers.length; iHeader++)
 					{
-						var line:String = probeLineFormatter.apply(null, [column, key, value, title]) + '\n';
-						// prevent duplicate lines from being added
-						if (lookup[line] == undefined)
+						var header:IAttributeColumn = headers[iHeader] as IAttributeColumn;
+						var headerValue:String = StandardLib.asString(header.getValueFromKey(key, String));
+						if (headerValue == '')
+							continue;
+						if (record)
+							record += ', ';
+						record += headerValue;
+					}
+					criDebug("record: " + record);
+					if (record)
+						record += '\n';
+					var lookup:Object = new Object() ;
+					for (var iColumn:int = 0; iColumn < columns.length; iColumn++)
+					{
+						//criDebug("lookup: " + lookup);
+						
+						var column:IAttributeColumn = columns[iColumn] as IAttributeColumn;
+						var value:String = String(column.getValueFromKey(key, String));
+						if (!value || value == 'NaN')
+							continue;
+						var title:String = ColumnUtils.getTitle(column);
+						try
 						{
-							if (!(value.toLowerCase() == 'undefined' || title.toLowerCase() == 'undefined'))
+							//criDebug("try start");
+							var line:String = probeLineFormatter.apply(null, [column, key, value, title]) + '\n';
+							// prevent duplicate lines from being added
+							if (lookup[line] == undefined)
 							{
-								lookup[line] = true; // this prevents the line from being duplicated
-								// the headers are only included so that the information will not be duplicated
-								if (iColumn >= headers.length)
-									record += line;
+								if (!(value.toLowerCase() == 'undefined' || title.toLowerCase() == 'undefined'))
+								{
+									lookup[line] = true; // this prevents the line from being duplicated
+									// the headers are only included so that the information will not be duplicated
+									if (iColumn >= headers.length)
+										record += line;
+								}
 							}
+							
+							//criDebug("try end");
+
+						}
+						catch (e:Error)
+						{
+							criDebug("Error");
+							//reportError(e);
 						}
 					}
-					catch (e:Error)
+					if (record)
 					{
-						//reportError(e);
+						result += record + '\n';
+						recordCount++;
 					}
+				} else {
+					//criDebug("key is null");
 				}
-				if (record)
-				{
-					result += record + '\n';
-					recordCount++;
-				}
+
 			}
 			// remove ending '\n'
 			while (result.substr(result.length - 1) == '\n')
 				result = result.substr(0, result.length - 1);
-			
+
+			criDebug("BEFORE IF --> result: " + result);
+			criDebug("BEFORE IF --> showEmptyProbeRecordIdentifiers.value: " + showEmptyProbeRecordIdentifiers.value);
+
 			if (!result && showEmptyProbeRecordIdentifiers.value)
 			{
-				result = 'Record Identifier' + (keys.length > 1 ? 's' : '') + ':\n';
+				
+				//result = 'Record Identifier' + (keys.length > 1 ? 's' : '') + ':\n';
 				for (var i:int = 0; i < keys.length && i < maxRecordsShown; i++)
 				{
+
 					key = keys[i] as IQualifiedKey;
-					result += '    ' + key.keyType + '#' + key.localName + '\n';
-					recordCount++;
+					//trace("key: " + key);
+					//trace("key.keyType: " + key.keyType);
+					//trace("key.localName: " + key.localName);
+
+					// TJM - 04/04/14 - was getting this weird error in weave console box so now I added check to only add to result if key was not null, otherwise return N/A
+					/*
+					 * getProbeText([this.visualization.lastProbedKey])
+							Error #1009: Cannot access a property or method of a null object reference.
+							Stack trace: ProbeTextUtils$/getProbeText():214; apply(); Function/<anonymous>(); apply(); Function/<anonymous>(); apply(); ExternalSessionStateInterface/evaluateExpression(); apply(); Function/<anonymous>(); apply(); ExternalInterface$/_callIn(); Function/<anonymous>()
+					 */
+					if(key != null) {
+						//result += '    ' + key.keyType + '#' + key.localName + '\n';
+						result += '**ENTRY NOT IN WEAVE PROBE INFO EDITOR via ADMIN CONSOLE** for layer: ' + key.keyType + ' key ID:' + key.localName + '\n';
+					} else {
+						result = 'N/A';
+					}
+					recordCount++;						
+
 				}
 			}
 			
@@ -156,6 +239,9 @@ package weave.utils
 			{
 				result += '\n... (' + keys.length + ' records total, ' + recordCount + ' shown)';
 			}
+			
+			criDebug("result: " + result);
+			criDebug("[END] getProbeText function");
 
 			return result;
 		}
@@ -285,5 +371,20 @@ package weave.utils
 			if (probeToolTip)
 				probeToolTip.visible = false;
 		}
+		
+		private static const debugPrefix:String = "DEBUG - TJM - " + "ProbeTextUtils.as" + " - ";
+		public static var debugOn:Boolean = false; 				// turns trace messages on/off
+		public static var debugOffMsgDisplayed:Boolean = false; // this should ALWAYS be set to false as it is used to display a single message
+		public static function criDebug(s:String):void {
+			if(debugOn) {
+				trace(debugPrefix + s);				
+			} else {
+				if(!debugOffMsgDisplayed) {
+					trace(debugPrefix + "Debug Messages turned off for this class");
+					debugOffMsgDisplayed = true;
+				} 
+			}
+		}	
+
 	}
 }

@@ -75,6 +75,7 @@ package weave.visualization.layers
 		
 		public function PlotManager()
 		{
+			criDebug("[START] PlotManager Constructor");	
 			// zoom depends on plotters and layerSettings
 			plotters.addImmediateCallback(this, updateZoom);
 			layerSettings.addImmediateCallback(this, updateZoom);
@@ -91,6 +92,7 @@ package weave.visualization.layers
 			
 			WeaveAPI.StageUtils.addEventCallback(Event.FRAME_CONSTRUCTED, this, handleFrameConstructed);
 			Weave.properties.filter_callbacks.addImmediateCallback(this, refreshLayers);
+			criDebug("[END] PlotManager Constructor");	
 		}
 		
 		/**
@@ -780,6 +782,10 @@ package weave.visualization.layers
 			return layerSettings.getObject(name) as LayerSettings;
 		}
 		
+		private const debugPrefix:String = "DEBUG - TJM - " + "PlotManager.as" + " - ";
+		public function criDebug(s:String):void {
+			trace(debugPrefix + s);
+		}		
 		//-------------------------------------------------------------------------------------------------
 		
 		// backwards compatibility

@@ -279,6 +279,8 @@ package weave
 		public const enableDrawCircle:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAnnotation:LinkableBoolean = new LinkableBoolean(true);
 		public const enablePenTool:LinkableBoolean = new LinkableBoolean(true);
+		// TJM - 11/05/13 - first crack at adding a modified pen tool
+		public const enableCRIPenTool:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableMenuBar:LinkableBoolean = new LinkableBoolean(true); // top menu for advanced features		
 		public const enableSubsetControls:LinkableBoolean = new LinkableBoolean(true); // creating subsets

@@ -55,6 +55,7 @@ package weave.visualization.layers
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.VectorUtils;
 	import weave.utils.ZoomUtils;
+	import weave.primitives.GeometryType;
 	
 	/**
 	 * This is a container for a list of PlotLayers
@@ -159,7 +160,6 @@ package weave.visualization.layers
 		{
 			_mouseMode = Weave.properties.toolInteractions.determineInteraction(inputType);
 			
-			//weaveTrace('inputType '+inputType+' -> mode ' + _mouseMode);
 			
 			if (!enableZoomAndPan.value && (isModeZoom(_mouseMode) || _mouseMode == InteractionController.PAN))
 			{
@@ -313,10 +313,14 @@ package weave.visualization.layers
 				weaveTrace(StringUtil.substitute("gesture local({0}) offset({1}) scale({2})", [gestureEvent.localX, gestureEvent.localY], [gestureEvent.offsetX, gestureEvent.offsetY], [gestureEvent.scaleX, gestureEvent.scaleY]));
 			}
 			
+			//criDebug("Mouse event type: " + event.type);
+			
 			switch (event.type)
 			{
 				case MouseEvent.CLICK:
 				{
+					criDebug("XXX Call the cri probe method");
+					criHandleProbe();
 					inputType = InteractionController.INPUT_CLICK;
 					break;
 				}
@@ -794,6 +798,9 @@ package weave.visualization.layers
 			// loop from bottom layer to top layer
 			layerLoop: for each (var name:String in plotManager.plotters.getNames())
 			{
+				
+				criDebug("immediateHandleSelection - layerLoop - name: " + name);
+				
 				var plotter:IPlotter = plotManager.plotters.getObject(name) as IPlotter;
 				var settings:LayerSettings = plotManager.getLayerSettings(name);
 				// skip this layer if it is disabled
@@ -866,15 +873,218 @@ package weave.visualization.layers
 
 		}
 		
+		public function criGetKey(keyName:String):IQualifiedKey {
+			criDebug("[START] getProbeKeyByName function");
+			var key:IQualifiedKey;
+			
+			criDebug("searching for: " + keyName);
+			
+			// get data coords from screen coords
+			var bufferSize:Number = 16; 
+			
+			criDebug("mouseIsRolledOver: " + mouseIsRolledOver);
+			
+			plotManager.zoomBounds.getDataBounds(tempDataBounds);
+			plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
+			
+			queryBounds.setCenteredRectangle(mouseX, mouseY, bufferSize, bufferSize);
+			tempScreenBounds.projectCoordsTo(queryBounds, tempDataBounds);
+			
+			var xPrecision:Number = tempDataBounds.getXCoverage() / tempScreenBounds.getXCoverage();
+			var yPrecision:Number = tempDataBounds.getYCoverage() / tempScreenBounds.getYCoverage();
+		
+			// probe for records
+			
+			//if (!tempDataBounds.overlaps(queryBounds))
+				//continue;
+			criDebug("before tempDataBounds");
+			tempDataBounds.constrainBounds(queryBounds, false);
+
+			criDebug("before hack_getSpatialIndex");
+			criDebug("tempDataBounds: " + tempDataBounds);
+			criDebug("queryBounds: " + queryBounds);
+			criDebug("xPrecision: " + xPrecision);
+			criDebug("yPrecision: " + yPrecision);
+			
+			var keys:Array = plotManager.hack_getSpatialIndex(name).getClosestOverlappingKeys(queryBounds, xPrecision, yPrecision, tempDataBounds);
+
+			criDebug("before keys.length");
+
+			// stop when we find keys
+			if (keys.length > 0)
+			{
+				criDebug("keys after HACK: " + keys);
+			} else {
+				criDebug("No keys found");
+			}
+			
+			criDebug("key: " + key);
+
+			criDebug("[END] getProbeKeyByName function");
+			return key;
+		}
+		
 		/**
 		 * This is the last IQualifiedKey (record identifier) that was probed.
 		 */
 		public function get lastProbedKey():IQualifiedKey { return _lastProbedQKeys ? _lastProbedQKeys[0] : null; }
 		public function get lastProbedKeys():Array { return _lastProbedQKeys; }
 		private var _lastProbedQKeys:Array = null;
+
+
+		public function get criProbedKey():IQualifiedKey { return _criProbedQKeys ? _criProbedQKeys[0] : null; }
+		public function get criProbedKeys():Array { return _criProbedQKeys; }
+		private var _criProbedQKeys:Array = [ ];
+
+		public function criHandleProbe(allowCallLater:Boolean = true):void
+		{
+			criDebug("[START] criHandleProbe method");
+			//if(_criProbedQKeys != null)
+
+			criDebug("clearing out the _criProbedQKeys array which currently has a lenth of: " + _criProbedQKeys.length);			
+			_criProbedQKeys = [ ];
+			criDebug("_criProbedQKeys array lenth of: " + _criProbedQKeys.length);			
+			
+			if (!parent || !Weave.properties.enableToolProbe.value || !enableProbe.value)
+				return;
+			
+			// NOTE: this code is hacked to work with only one global probe KeySet
+			
+			// only probe if the mouse coords are the same two frames in a row
+			if (WeaveAPI.StageUtils.mouseMoved)
+			{
+				if (allowCallLater)
+					callLater(criHandleProbe, [false]);
+			}
+			else if (mouseIsRolledOver)
+			{
+				//plotManager.zoomBounds.getDataBounds(tempDataBounds);
+				//plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
+				
+				// handle probe when mouse hasn't moved since last frame.
+				var names:Array = plotManager.plotters.getNames().reverse(); // top to bottom
+				var lastActiveLayer:String = null;
+				for each (var name:String in names)
+				{
+					var settings:LayerSettings = plotManager.getLayerSettings(name);
+					if (!plotManager.layerShouldBeRendered(name) || !settings.selectable.value)
+						continue;
+					
+					lastActiveLayer = name;
+
+					criDebug("[START] criHandleProbe for lastActiveLayer: " + lastActiveLayer);
+
+					// get data coords from screen coords
+					//var bufferSize:Number = 16; 
+					
+					//queryBounds.setCenteredRectangle(mouseX, mouseY, bufferSize, bufferSize);
+					//tempScreenBounds.projectCoordsTo(queryBounds, tempDataBounds);
+					
+					//var xPrecision:Number = tempDataBounds.getXCoverage() / tempScreenBounds.getXCoverage();
+					//var yPrecision:Number = tempDataBounds.getYCoverage() / tempScreenBounds.getYCoverage();
+
+/*					criDebug("yPrecision: " + yPrecision);
+					criDebug("xPrecision: " + xPrecision);
+					 
+					criDebug("mouseX: " + mouseX);
+					criDebug("mouseY: " + mouseY);
+					
+					criDebug("tempDataBounds X: " + tempDataBounds.getXCoverage());
+					criDebug("tempDataBounds Y: " + tempDataBounds.getYCoverage());
+					
+					criDebug("tempScreenBounds X: " + tempScreenBounds.getXCoverage());
+					criDebug("tempScreenBounds Y: " + tempScreenBounds.getYCoverage());
+
+					criDebug("queryBounds X: " + queryBounds.getXCoverage());
+					criDebug("queryBounds Y: " + queryBounds.getYCoverage());
+*/
+
+					criDebug("criHandleProbe mouseX: " + mouseX);
+					criDebug("criHandleProbe mouseY: " + mouseY);
+
+					//var tmpPoint:Point = new Point();
+					var tmpPoint:Point = getMouseDataCoordinates();
+					//tempScreenBounds.projectPointTo(tmpPoint, tempDataBounds);
+					
+					criDebug("criHandleProbe - 2 tmpPoint.x: " + tmpPoint.x);
+					criDebug("criHandleProbe - 2 tmpPoint.y: " + tmpPoint.y);
+					//criDebug( "criHandleProbe - 2 tmpPoint: " + tmpPoint);
+					
+					//trace(layers.getName(layer),queryBounds);
+					
+					// probe for records
+					
+					//if (!tempDataBounds.overlaps(queryBounds))
+					//	continue;
+					//tempDataBounds.constrainBounds(queryBounds, false);
+					//var keys:Array = plotManager.hack_getSpatialIndex(name).getClosestOverlappingKeys(queryBounds, xPrecision, yPrecision, tempDataBounds);
+					
+					//var keys:Array = plotManager.hack_getSpatialIndex(name).getKeysGeometryOverlap(queryBounds,0,false,tempDataBounds);
+
+					criDebug("criHandleProbe - Try with spehericalMercator");
+					var pointGeom:SimpleGeometry = new SimpleGeometry(GeometryType.POINT);
+
+//					var spehericalMercatorX:Number = -9543057.437909318;
+//					var spehericalMercatorY:Number = 5308611.878724121;				
+//					pointGeom.setVertices([new Point(spehericalMercatorX, spehericalMercatorY)]);
+					pointGeom.setVertices([tmpPoint]);
+					
+					// tjm - try to find simple geom ?
+					var keys:Array = plotManager.hack_getSpatialIndex(name).getKeysGeometryOverlapGeometry(pointGeom);
+					criDebug("after call to getKeysGeometryOverlapGeometry - keys length: " + keys.length);
+					
+					// stop when we find keys
+					if (keys.length > 0)
+					{
+						criDebug("keys fetched for the layer: " + keys);
+						var key:IQualifiedKey;
+						for (var iKey:int = 0; iKey < keys.length; iKey++)
+						{
+							key = keys[iKey] as IQualifiedKey;
+							if(key != null) {
+								criDebug("key[" +iKey +"]: " + key);
+								criDebug("key.localName: " + key.localName);
+								criDebug("key.keyType: " + key.keyType);
+								_criProbedQKeys.push(key);
+							}
+						}
+						
+						criDebug("name: " + name);
+						
+						//criSetProbeKeys(name, keys,true);
+						//_lastProbedQKeys = keys;
+						
+						//criDebug("3 setting _criProbedQKeys: " + keys + " length: " + keys.length);						
+						
+						
+						//if(_criProbedQKeys != null)
+						criDebug("*** setting _criProbedQKeys: " + _criProbedQKeys + " length: " + _criProbedQKeys.length);						
+
+						// TJM - THIS RETURN!!! THIS IS WHY ONLY 1 key!!!! aye!
+						//return;
+					}
+					
+					criDebug("[END] criHandleProbe for lastActiveLayer: " + lastActiveLayer);
+				}
+				// clear keys if nothing was probed
+				// NOTE: this code is hacked to work with only one global probe KeySet
+				//if (lastActiveLayer)
+				//	setProbeKeys(lastActiveLayer, []);
+			}
+			
+			// either not rolled over or nothing was probed
+			//_lastProbedQKeys = null;
+			
+			//if(_criProbedQKeys != null)
+			criDebug("AFTER PROBE IS COMPLETED -> _criProbedQKeys length: " + _criProbedQKeys.length);						
+
+			criDebug("[END] criHandleProbe method");
+			
+		}
 		
 		protected function handleProbe(allowCallLater:Boolean = true):void
 		{
+			
 			if (!parent || !Weave.properties.enableToolProbe.value || !enableProbe.value)
 				return;
 			
@@ -888,6 +1098,9 @@ package weave.visualization.layers
 			}
 			else if (mouseIsRolledOver)
 			{
+				
+				
+				
 				plotManager.zoomBounds.getDataBounds(tempDataBounds);
 				plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
 				
@@ -901,7 +1114,9 @@ package weave.visualization.layers
 						continue;
 					
 					lastActiveLayer = name;
-					
+
+					//criDebug("[START] handleProbe for lastActiveLayer: " + lastActiveLayer);
+
 					// get data coords from screen coords
 					var bufferSize:Number = 16; 
 					
@@ -919,14 +1134,32 @@ package weave.visualization.layers
 						continue;
 					tempDataBounds.constrainBounds(queryBounds, false);
 					var keys:Array = plotManager.hack_getSpatialIndex(name).getClosestOverlappingKeys(queryBounds, xPrecision, yPrecision, tempDataBounds);
-					//trace(layers.getName(layer),keys);
 					
 					// stop when we find keys
 					if (keys.length > 0)
 					{
+						//criDebug("keys after HACK: " + keys);
+						var key:IQualifiedKey;
+						for (var iKey:int = 0; iKey < keys.length; iKey++)
+						{
+							key = keys[iKey] as IQualifiedKey;
+							if(key != null) {
+								//criDebug("key[" +iKey +"]: " + key);
+								//criDebug("key.localName: " + key.localName);
+								//criDebug("key.keyType: " + key.keyType);
+							}
+						}
+						
+						//criDebug("name: " + name);
+						
 						setProbeKeys(name, keys);
 						_lastProbedQKeys = keys;
 						
+						//criDebug("1 setting _criProbedQKeys: " + keys + " length: " + keys.length);						
+						//_criProbedQKeys = keys;
+						//if(_criProbedQKeys != null)
+						//	criDebug("2 setting _criProbedQKeys: " + _criProbedQKeys + " length: " + _criProbedQKeys.length);						
+
 						return;
 					}
 				}
@@ -935,8 +1168,10 @@ package weave.visualization.layers
 				if (lastActiveLayer)
 					setProbeKeys(lastActiveLayer, []);
 			}
+			
 			// either not rolled over or nothing was probed
 			_lastProbedQKeys = null;
+			
 		}
 		
 		protected function setSelectionKeys(layerName:String, keys:Array):void
@@ -956,16 +1191,27 @@ package weave.visualization.layers
 			else
 				keySet.replaceKeys(keys);
 		}
-		
-		protected function setProbeKeys(layerName:String, keys:Array):void
+
+		protected function setProbeKeys(layerName:String, keys:Array):void {
+			criSetProbeKeys(layerName,keys,false)
+		}
+
+		protected function criSetProbeKeys(layerName:String, keys:Array, debug:Boolean):void
 		{
+			
 			//trace("setProbeKeys()",keys);
 			// set the probe filter to a new set of keys
 			var settings:LayerSettings = plotManager.getLayerSettings(layerName);
+			//criDebug("settings: " + settings);
 			var keySet:KeySet = settings.probeFilter.internalObject as KeySet;
+			//criDebug("keySet: " + keySet);
+
 			
-			if (keySet != null)
-			{
+			if (keySet != null) {
+				
+				if(debug)
+					criDebug("criSetProbeKeys layerName: " + layerName);
+
 				keySet.replaceKeys(keys);
 				
 				if (keys.length == 0)
@@ -977,6 +1223,8 @@ package weave.visualization.layers
 					var text:String = ProbeTextUtils.getProbeText(keySet.keys, additionalProbeColumns);
 					ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
 				}
+			} else {
+				criDebug("criSetProbeKeys keySet is null");
 			}
 		}
 
@@ -1069,5 +1317,10 @@ package weave.visualization.layers
 		[Embed(source="/weave/resources/images/cursor_zoom.png")]
 		private static var zoomCursor:Class;
 		CustomCursorManager.registerEmbeddedCursor(CURSOR_ZOOM, zoomCursor, 0, 0);
+		
+		private static const debugPrefix:String = "DEBUG - TJM - " + "InteractiveVisualization.as" + " - ";
+		public static function criDebug(s:String):void {
+			trace(debugPrefix + s);
+		}	
 	}
 }
