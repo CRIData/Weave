@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- save point -->
-<project name="Weave" basedir="./../" default="build">
+<project name="Weave" basedir="./../" default="deploy_local">
 
 	<property environment="env" />
 
@@ -14,9 +14,11 @@
 	<taskdef file="${basedir}\tomcattasks.properties">
 		<classpath>
 			<pathelement path="${ext.lib}/catalina-ant.jar" />
+			<!-- FOR TC7 installs on windows after July, 2012 -->
+			<pathelement path="${ext.lib}/tomcat-coyote.jar" />
+			<pathelement path="${ext.lib}/tomcat-util.jar" />			
 		</classpath>
 	</taskdef>
-
 
 	<!-- This property's value is defined as an environment variable -->
 	<property name="FLEX_HOME" value="${env.FLEX_HOME}"/>
@@ -111,6 +113,7 @@
 
 		<deploy url="${target.manager.url}" username="${target.username}" password="${target.password}" path="/${test_path}" war="file:${basedir}/WeaveServices.war" />
 
+		<echo message="Trying to Deploy contents of /opt/tomcat7/webapps/ROOT/cri-weave to ${target.server}"/>
 		<echo message="${target.username}:${target.password}@${target.server}:/opt/tomcat7/webapps/ROOT/cri-weave" />
 		<scp todir="${target.username}:${target.password}@${target.server}:/opt/tomcat7/webapps/ROOT/cri-weave" sftp="true" trust="true">
 			<fileset dir="${WEAVE_DESTROOT}">
@@ -172,8 +175,12 @@
 		<antcall target="undeploy-app" />
 	</target>
 
+	<!--
 	<target name="redeploy_prod" depends="build">
-		<property name="target.server" value="${prod.server}" />
+	 TJM - 07/09/14 - don't think this depends on build -> because it gets built in undeploy-app and deploy-app
+	-->
+	<target name="redeploy_prod">
+	<property name="target.server" value="${prod.server}" />
 		<property name="target.manager.url" value="${prod.manager.url}" />
 		<property name="target.username" value="${prod.username}" />
 		<property name="target.password" value="${prod.password}" />
@@ -203,6 +210,19 @@
 		<copy file="${FLEX_HOME}/frameworks/rsls/${TEXTLAYOUT_SWF}" tofile="${WEAVE_DESTROOT}/textLayout.swf"/>
 		<antcall target="admin_wrapper"/>
 		<antcall target="client_wrapper"/>
+		
+		<echo message=" " />
+		<echo message="**NOTICE** If you get a message like this (for TC7):" />
+		<echo message="	BUILD FAILED - java.lang.NoClassDefFoundError: org/apache/tomcat/util/buf/B2CConverter" />
+		<echo message="Then be sure to include tomcat-coyote.jar and tomcat-util.jar below catalina-ant.jar inside this build.xml file!" />
+		<echo message=" " />
+
+		<echo message=" " />
+		<echo message="**NOTICE** If you get a message like this ANT:" />
+		<echo message="	scp build failed Cause: Could not load a dependent class com/jcraft/jsch/Logger" />
+		<echo message="Then be sure to place the jsch-0.1.51.jar from http://ant.apache.org/manual/install.html#librarydependencies inside your eclipse ANT run configuration under Classpath tab!" />
+		<echo message=" " />
+
 	</target>
 
 	<!-- These targets will build each project -->
