@@ -37,6 +37,10 @@
 					<mx:CheckBox label="{lang('Subset controls')}" creationComplete="linkBindableProperty(Weave.properties.enableSubsetControls, event.target, 'selected')"/>
 					<mx:CheckBox label="{lang('Search for record online')}" creationComplete="linkBindableProperty(Weave.properties.enableSearchForRecord, event.target, 'selected')"/>
 					<mx:CheckBox label="{lang('Pen Tool')}" creationComplete="linkBindableProperty(Weave.properties.enablePenTool, event.target, 'selected')"/>
+
+					<!-- TJM - 11/05/13 - first crack at adding a modified pen tool -->
+					<mx:CheckBox label="{lang('CRI Pen Tool')}" creationComplete="linkBindableProperty(Weave.properties.enableCRIPenTool, event.target, 'selected')"/>
+
 					<mx:CheckBox label="{lang('Add Marker')}" creationComplete="linkBindableProperty(Weave.properties.enableMarker, event.target, 'selected')"/>
 					<mx:CheckBox label="{lang('Add Circle')}" creationComplete="linkBindableProperty(Weave.properties.enableDrawCircle, event.target, 'selected')"/>
 					<mx:CheckBox label="{lang('Add Annotation')}" creationComplete="linkBindableProperty(Weave.properties.enableAnnotation, event.target, 'selected')"/>
