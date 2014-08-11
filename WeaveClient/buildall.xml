@@ -103,8 +103,12 @@
 		</copy>
 	</target>
 
+<!--	
 	<target name="deploy-app" depends="build">
-		<echo message="Deploying ${ant.project.name} to ${target.server}" />
+	TJM - 08/11/14 - doesn't need to depend on build in order to deploy the app because it is taken care of in deploy_local,deploy_prod,deploy_test,redeploy_local,redeploy_test and redeploy_prod
+-->
+	<target name="deploy-app">
+	<echo message="Deploying ${ant.project.name} to ${target.server}" />
 		<echo message="Manager: ${target.manager.url}" />
 		<echo message="Username: ${target.username}" />
 		<echo message="password: ${target.password}" />
@@ -113,9 +117,9 @@
 
 		<deploy url="${target.manager.url}" username="${target.username}" password="${target.password}" path="/${test_path}" war="file:${basedir}/WeaveServices.war" />
 
-		<echo message="Trying to Deploy contents of /opt/tomcat7/webapps/ROOT/cri-weave to ${target.server}"/>
-		<echo message="${target.username}:${target.password}@${target.server}:/opt/tomcat7/webapps/ROOT/cri-weave" />
-		<scp todir="${target.username}:${target.password}@${target.server}:/opt/tomcat7/webapps/ROOT/cri-weave" sftp="true" trust="true">
+		<echo message="Trying to SCP Deploy contents of locally built ${WEAVE_DESTROOT} to ${target.server}"/>
+		<echo message="${SCP_USERNAME}:${SCP_PASSWORD}@${target.server}:/opt/tomcat7/webapps/ROOT/cri-weave" />
+		<scp todir="${SCP_USERNAME}:${SCP_PASSWORD}@${target.server}:/opt/tomcat7/webapps/ROOT/cri-weave" sftp="true" trust="true">
 			<fileset dir="${WEAVE_DESTROOT}">
 				<include name="*.*" />
 			</fileset>
@@ -141,7 +145,7 @@
 		<antcall target="deploy-app" />
 	</target>
 
-	<target name="undeploy_test" depends="build">
+	<target name="undeploy_test">
 		<property name="target.server" value="${test.server}" />
 		<property name="target.manager.url" value="${test.manager.url}" />
 		<property name="target.username" value="${test.username}" />
@@ -167,7 +171,7 @@
 		<antcall target="deploy-app" />
 	</target>
 
-	<target name="undeploy_prod" depends="build">
+	<target name="undeploy_prod">
 		<property name="target.server" value="${prod.server}" />
 		<property name="target.manager.url" value="${prod.manager.url}" />
 		<property name="target.username" value="${prod.username}" />
@@ -179,7 +183,7 @@
 	<target name="redeploy_prod" depends="build">
 	 TJM - 07/09/14 - don't think this depends on build -> because it gets built in undeploy-app and deploy-app
 	-->
-	<target name="redeploy_prod">
+	<target name="redeploy_prod" depends="build">
 	<property name="target.server" value="${prod.server}" />
 		<property name="target.manager.url" value="${prod.manager.url}" />
 		<property name="target.username" value="${prod.username}" />
